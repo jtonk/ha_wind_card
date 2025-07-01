@@ -86,6 +86,31 @@ class WindCard extends LitElement {
     this._timelineIndex = (this._timelineIndex + 1) % this._timeline.length;
   }
 
+  _polarToCartesian(cx, cy, r, angleDeg) {
+    const angleRad = (angleDeg - 90) * Math.PI / 180;
+    return {
+      x: cx + r * Math.cos(angleRad),
+      y: cy + r * Math.sin(angleRad),
+    };
+  }
+
+  _directionToText(deg) {
+    const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+      'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    const i = Math.round(((deg % 360) / 22.5)) % 16;
+    return dirs[i];
+  }
+
+  _buildTickPath(radius, length, step) {
+    let d = '';
+    for (let a = 0; a < 360; a += step) {
+      const outer = this._polarToCartesian(50, 50, radius, a);
+      const inner = this._polarToCartesian(50, 50, radius - length, a);
+      d += `M ${inner.x},${inner.y} L ${outer.x},${outer.y} `;
+    }
+    return d.trim();
+  }
+
   static get styles() {
     return css`
       :host {
@@ -101,7 +126,6 @@ class WindCard extends LitElement {
       svg {
         width: 100%;
         height: 100%;
-        transform: rotate(-90deg);
       }
       .center-text {
         position: absolute;
@@ -116,61 +140,44 @@ class WindCard extends LitElement {
         right: 4px;
         font-size: 0.7em;
       }
-      .arrow {
-        transform-origin: 50% 50%;
+      .compass {
         transition: transform 1s linear;
+      }
+      .ring text {
+        fill: var(--primary-text-color, #212121);
+        font-weight: bold;
       }
     `;
   }
 
   render() {
-    const maxSpeed = 60; // knots
-    const radius = 90;
-    const circumference = 2 * Math.PI * radius;
-    const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
-    const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
+    const dirText = this._directionToText(this.direction);
+    const majorPath = this._buildTickPath(50, 3.5, 30);
+    const minorPath = this._buildTickPath(50, 1.5, 5);
+
     return html`
       <div class="container">
-        <svg viewBox="0 0 200 200">
-          <circle
-            cx="100"
-            cy="100"
-            r="90"
-            fill="none"
-            stroke="#eee"
-            stroke-width="10"
-          ></circle>
-          <circle
-            cx="100"
-            cy="100"
-            r="90"
-            fill="none"
-            stroke="#0af"
-            stroke-width="10"
-            stroke-dasharray="${circumference}"
-            stroke-dashoffset="${speedOffset}"
-            style="transition: stroke-dashoffset 1s linear;"
-          ></circle>
-          <circle
-            cx="100"
-            cy="100"
-            r="90"
-            fill="none"
-            stroke="#f80"
-            stroke-width="4"
-            stroke-dasharray="${circumference}"
-            stroke-dashoffset="${gustOffset}"
-            style="transition: stroke-dashoffset 1s linear;"
-          ></circle>
-          <g class="arrow" transform="rotate(${this.direction} 100 100)">
-            <polygon points="100,40 94,70 106,70" fill="#333"></polygon>
-            <line x1="100" y1="70" x2="100" y2="140" stroke="#333" stroke-width="4"></line>
+        <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
+          <g class="elements">
+            <text text-anchor="middle" alignment-baseline="alphabetic" class="top marker" x="50" y="28.428571428571427" font-size="12">${dirText}</text>
+            <text alignment-baseline="alphabetic" class="middle" x="50" y="58.2688" text-anchor="middle" font-size="28.9408">${this.windSpeed.toFixed(1)}</text>
+            <text alignment-baseline="alphabetic" class="middle unit" x="50" y="73.42857142857143" text-anchor="middle" font-size="12"> kn</text>
+          </g>
+          <g class="ring">
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="96.64" font-size="11.2">S</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="3.36" y="50" font-size="11.2">W</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="3.36" font-size="11.2">N</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="96.64" y="50" font-size="11.2">E</text>
+            <path class="compass cardinals" stroke-width="2" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" d=""></path>
+            <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="0.7" d="${majorPath}"></path>
+            <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="0.3" d="${minorPath}"></path>
+          </g>
+          <g class="indicators">
+            <g class="marker compass" transform="rotate(${this.direction} 50 50)">
+              <path stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50 97.33333333333333 l 9.2 -15.93486742963367 l -9.2 3.0666666666666664 l -9.2 -3.0666666666666664 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(180 50 90.8)"></path>
+            </g>
           </g>
         </svg>
-        <div class="center-text">
-          <div style="font-size: 2em; font-weight: bold;">${this.windSpeed} kn</div>
-          <div style="font-size: 1em;">gust ${this.gust} kn</div>
-        </div>
         <div class="date">${this.dateTime} ${this.isLive ? '(live)' : ''}</div>
       </div>
     `;

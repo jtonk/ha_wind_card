@@ -9,6 +9,7 @@ class WindCard extends LitElement {
       windSpeed: { type: Number },
       gust: { type: Number },
       direction: { type: Number },
+      cardinal: { type: String },
       dateTime: { type: String },
       isLive: { type: Boolean },
       _timeline: { type: Array },
@@ -23,6 +24,7 @@ class WindCard extends LitElement {
     this.windSpeed = 0;
     this.gust = 0;
     this.direction = 0;
+    this.cardinal = '';
     this.dateTime = '';
     this.isLive = false;
     this._timeline = [];
@@ -63,6 +65,7 @@ class WindCard extends LitElement {
     const dirs = Array.isArray(data.direction) ? data.direction : [];
     const speeds = Array.isArray(data.speed) ? data.speed : [];
     const gusts = Array.isArray(data.gusts) ? data.gusts : [];
+    const cardinals = Array.isArray(data.cardinal) ? data.cardinal : [];
     const len = Math.min(dirs.length, speeds.length, gusts.length);
     this._timeline = [];
     for (let i = 0; i < len; i++) {
@@ -70,6 +73,7 @@ class WindCard extends LitElement {
         direction: Number(dirs[i]),
         wind: Number(speeds[i]),
         gust: Number(gusts[i]),
+        cardinal: cardinals[i] || '',
       });
     }
     this._timelineIndex = 0;
@@ -82,6 +86,7 @@ class WindCard extends LitElement {
       this.windSpeed = frame.wind ?? this.windSpeed;
       this.gust = frame.gust ?? this.gust;
       this.direction = frame.direction ?? this.direction;
+      this.cardinal = frame.cardinal ?? this.cardinal;
     }
     this._timelineIndex = (this._timelineIndex + 1) % this._timeline.length;
   }
@@ -147,11 +152,14 @@ class WindCard extends LitElement {
         fill: var(--primary-text-color, #212121);
         font-weight: bold;
       }
+      .elements text {
+        fill: var(--primary-text-color, #212121);
+      }
     `;
   }
 
   render() {
-    const dirText = this._directionToText(this.direction);
+    const dirText = this.cardinal || '';
     const majorPath = this._buildTickPath(50, 3.5, 30);
     const minorPath = this._buildTickPath(50, 1.5, 5);
 
@@ -169,7 +177,7 @@ class WindCard extends LitElement {
             cy="50"
             r="${radius}"
             fill="none"
-            stroke="#eee"
+            stroke="var(--divider-color, #eee)"
             stroke-width="6"
           ></circle>
           <circle
@@ -189,7 +197,7 @@ class WindCard extends LitElement {
             cy="50"
             r="${radius}"
             fill="none"
-            stroke="var(--primary-text-color, #212121)"
+            stroke="var(--secondary-text-color, #727272)"
             stroke-width="6"
             stroke-dasharray="${circumference}"
             stroke-dashoffset="${gustOffset}"
@@ -203,16 +211,16 @@ class WindCard extends LitElement {
             <text alignment-baseline="alphabetic" class="middle unit" x="50" y="60" text-anchor="middle" font-size="6">${this.gust.toFixed(1)} kn</text>
           </g>
           <g class="ring">
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="96.64" font-size="11.2">S</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="3.36" y="50" font-size="11.2">W</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="3.36" font-size="11.2">N</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="96.64" y="50" font-size="11.2">E</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="90.64" font-size="11.2">S</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="9.36" y="50" font-size="11.2">W</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="9.36" font-size="11.2">N</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="90.64" y="50" font-size="11.2">E</text>
             <path class="compass cardinals" stroke-width="2" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" d=""></path>
             <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="0.7" d="${majorPath}"></path>
-            <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="0.3" d="${minorPath}"></path>
+            <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="0.3" d="${minorPath}"></path>
           </g>
           <g class="indicators">
-            <g class="marker compass" transform="rotate(${this.direction} 50 50)">
+            <g class="marker compass" transform="rotate(${this.direction + 180} 50 50)">
               <path stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50 97.33333333333333 l 9.2 -15.93486742963367 l -9.2 3.0666666666666664 l -9.2 -3.0666666666666664 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(180 50 90.8)"></path>
             </g>
           </g>

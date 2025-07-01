@@ -42,9 +42,9 @@ class WindCard extends LitElement {
     try {
       const res = await fetch('https://www.ksnoordwijkwind.nl/currentwind');
       const data = await res.json();
-      this.windSpeed = data.windKn;
-      this.gust = data.gustKn;
-      this.direction = data.windDir;
+      this.windSpeed = data.windKn ?? data.wind ?? 0;
+      this.gust = data.gustKn ?? data.vlagen ?? 0;
+      this.direction = data.windDir ?? data.richting ?? data.direction ?? 0;
       this.dateTime = data.dateTime;
       this.isLive = data.isLive;
       this._timeline = data.timeLineLast15sec || [];
@@ -59,9 +59,10 @@ class WindCard extends LitElement {
     if (!this._timeline || this._timeline.length === 0) return;
     const frame = this._timeline[this._timelineIndex];
     if (frame) {
-      this.windSpeed = frame.windKn;
-      this.gust = frame.gustKn;
-      this.direction = frame.windDir;
+      this.windSpeed = frame.windKn ?? frame.wind ?? this.windSpeed;
+      this.gust = frame.gustKn ?? frame.vlagen ?? this.gust;
+      this.direction =
+        frame.windDir ?? frame.richting ?? frame.direction ?? this.direction;
     }
     this._timelineIndex = (this._timelineIndex + 1) % this._timeline.length;
   }

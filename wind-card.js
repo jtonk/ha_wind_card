@@ -165,8 +165,8 @@ class WindCard extends LitElement {
 
   render() {
     const dirText = this._directionToText(this.direction);
-    const majorPath = this._buildTickPath(50, 3.5, 30, [0, 90, 180, 270]);
-    const minorPath = this._buildTickPath(50, 1.5, 5);
+    const majorPath = this._buildTickPath(50, 6, 30, [0, 90, 180, 270]);
+    const minorPath = this._buildTickPath(50, 6, 5); [355,0,5,85,90,95,175,180,185,265,270,275];
 
     const maxSpeed = 60;
     const radius = 35;

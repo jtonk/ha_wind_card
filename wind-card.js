@@ -45,11 +45,7 @@ class WindCard extends LitElement {
     if (!config.entity) {
       throw new Error('Entity is required');
     }
-    this.config = Object.assign({
-      marker_diameter: 100,
-      graph_diameter: 70,
-      arrow_offset: 40,
-    }, config);
+    this.config = config;
   }
 
   set hass(hass) {
@@ -148,8 +144,7 @@ class WindCard extends LitElement {
         font-size: 0.75em;
       }
       .info .speed {
-        font-size: 3.5em;
-        font-weight: 800;
+        font-size: 1.4em;
         line-height: 1;
       }
       .date {
@@ -173,15 +168,11 @@ class WindCard extends LitElement {
 
   render() {
     const dirText = this._directionToText(this.direction);
-    const markerDiameter = this.config.marker_diameter ?? 100;
-    const markerRadius = markerDiameter / 2;
-    const arrowOffset = this.config.arrow_offset ?? 40;
-    const majorPath = this._buildTickPath(markerRadius, 6, 30, [0, 90, 180, 270]);
-    const minorPath = this._buildTickPath(markerRadius, 3, 5, [355,0,5,85,90,95,175,180,185,265,270,275]);
+    const majorPath = this._buildTickPath(50, 3.5, 30, [0, 90, 180, 270]);
+    const minorPath = this._buildTickPath(50, 1.5, 5, [355,0,5,85,90,95,175,180,185,265,270,275]);
 
     const maxSpeed = 60;
-    const graphDiameter = this.config.graph_diameter ?? 70;
-    const radius = graphDiameter / 2;
+    const radius = 35;
     const circumference = 2 * Math.PI * radius;
     const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
@@ -223,16 +214,16 @@ class WindCard extends LitElement {
             opacity="0.6"
           ></circle>
           <g class="ring">
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + markerRadius - 6}" font-size="11">S</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - markerRadius + 6}" y="50" font-size="11">W</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - markerRadius + 6}" font-size="11">N</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + markerRadius - 6}" y="50" font-size="11">E</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="96" font-size="11">S</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="4" y="50" font-size="11">W</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="4" font-size="11">N</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="96" y="50" font-size="11">E</text>
             <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
             <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
           </g>
           <g class="indicators">
-            <g class="marker compass" style="transform: rotate(${this.direction + 180}deg);">
-              <path stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50 ${50 + arrowOffset + 7.333} l 7.36 -12.748 l -7.36 2.453 l -7.36 -2.453 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(180 50 ${50 + arrowOffset})"></path>
+            <g class="marker compass" transform="rotate(${this.direction + 180} 50 50)">
+              <path stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50 97.333 l 7.36 -12.748 l -7.36 2.453 l -7.36 -2.453 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(180 50 90)"></path>
             </g>
           </g>
         </svg>
@@ -248,4 +239,3 @@ class WindCard extends LitElement {
 }
 
 customElements.define('wind-card', WindCard);
-

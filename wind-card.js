@@ -104,9 +104,10 @@ class WindCard extends LitElement {
     return dirs[i];
   }
 
-  _buildTickPath(radius, length, step) {
+  _buildTickPath(radius, length, step, skip = []) {
     let d = '';
     for (let a = 0; a < 360; a += step) {
+      if (skip.includes(a)) continue;
       const outer = this._polarToCartesian(50, 50, radius, a);
       const inner = this._polarToCartesian(50, 50, radius - length, a);
       d += `M ${inner.x},${inner.y} L ${outer.x},${outer.y} `;
@@ -157,7 +158,7 @@ class WindCard extends LitElement {
 
   render() {
     const dirText = this._directionToText(this.direction);
-    const majorPath = this._buildTickPath(50, 3.5, 30);
+    const majorPath = this._buildTickPath(50, 3.5, 30, [0, 90, 180, 270]);
     const minorPath = this._buildTickPath(50, 1.5, 5);
 
     const maxSpeed = 60;
@@ -212,7 +213,6 @@ class WindCard extends LitElement {
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="6" y="50" font-size="11">W</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="6" font-size="11">N</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="94" y="50" font-size="11">E</text>
-            <path class="compass cardinals" stroke-width="2" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" d=""></path>
             <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
             <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
           </g>

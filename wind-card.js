@@ -156,7 +156,7 @@ class WindCard extends LitElement {
     const minorPath = this._buildTickPath(50, 1.5, 5);
 
     const maxSpeed = 60;
-    const radius = 45;
+    const radius = 35;
     const circumference = 2 * Math.PI * radius;
     const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);

@@ -37,5 +37,23 @@ entity: sensor.my_wind
 ```
 The entity should have a `data` attribute with arrays named `direction`, `speed` and `gusts`. The card cycles through these values once per second.
 
+### Configuration Options
+Additional options allow tweaking the visuals:
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `marker_diameter` | Diameter of the outer marker circle (tick marks) in SVG units | `100` |
+| `graph_diameter`  | Diameter of the radial speed/gust graphs | `70` |
+| `arrow_offset`    | Distance from the card center to the base of the arrow | `40` |
+
+Example usage:
+```yaml
+type: custom:wind-card
+entity: sensor.my_wind
+marker_diameter: 80
+graph_diameter: 60
+arrow_offset: 35
+```
+
 If you see `i.setConfig is not a function`, Home Assistant could not load the script. Ensure the resource URL above is present and refresh the browser.
 

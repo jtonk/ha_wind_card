@@ -159,7 +159,7 @@ class WindCard extends LitElement {
   }
 
   render() {
-    const dirText = this.cardinal || '';
+    const dirText = this._directionToText(this.direction);
     const majorPath = this._buildTickPath(50, 3.5, 30);
     const minorPath = this._buildTickPath(50, 1.5, 5);
 

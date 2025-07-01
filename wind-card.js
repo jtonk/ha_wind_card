@@ -204,22 +204,22 @@ class WindCard extends LitElement {
             opacity="0.6"
           ></circle>
           <g class="elements">
-            <text text-anchor="middle" alignment-baseline="alphabetic" class="top marker" x="50" y="40" font-size="9">${dirText}</text>
+            <text text-anchor="middle" alignment-baseline="alphabetic" class="top marker" x="50" y="36" font-size="6">${dirText}</text>
             <text alignment-baseline="alphabetic" class="middle" x="50" y="50" text-anchor="middle" font-size="14">${this.windSpeed.toFixed(1)}</text>
-            <text alignment-baseline="alphabetic" class="middle unit" x="50" y="60" text-anchor="middle" font-size="6">${this.gust.toFixed(1)} kn</text>
+            <text alignment-baseline="alphabetic" class="middle unit" x="50" y="58" text-anchor="middle" font-size="6">${this.gust.toFixed(1)} kn</text>
           </g>
           <g class="ring">
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="90.64" font-size="11.2">S</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="9.36" y="50" font-size="11.2">W</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="9.36" font-size="11.2">N</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="90.64" y="50" font-size="11.2">E</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="96" font-size="11">S</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="6" y="50" font-size="11">W</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="9" font-size="11">N</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="94" y="50" font-size="11">E</text>
             <path class="compass cardinals" stroke-width="2" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" d=""></path>
             <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="0.7" d="${majorPath}"></path>
             <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="0.3" d="${minorPath}"></path>
           </g>
           <g class="indicators">
             <g class="marker compass" transform="rotate(${this.direction + 180} 50 50)">
-              <path stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50 97.33333333333333 l 9.2 -15.93486742963367 l -9.2 3.0666666666666664 l -9.2 -3.0666666666666664 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(180 50 90.8)"></path>
+              <path stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50 97.33333333333333 l 9.2 -15.93486742963367 l -9.2 3.0666666666666664 l -9.2 -3.0666666666666664 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(180 50 90)"></path>
             </g>
           </g>
         </svg>

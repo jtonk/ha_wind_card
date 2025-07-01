@@ -4,6 +4,8 @@ import { LitElement, html, css } from 'https://unpkg.com/lit-element/lit-element
 class WindCard extends LitElement {
   static get properties() {
     return {
+      hass: {},
+      config: {},
       windSpeed: { type: Number },
       gust: { type: Number },
       direction: { type: Number },
@@ -16,6 +18,8 @@ class WindCard extends LitElement {
 
   constructor() {
     super();
+    this.hass = null;
+    this.config = null;
     this.windSpeed = 0;
     this.gust = 0;
     this.direction = 0;
@@ -27,42 +31,57 @@ class WindCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this._fetchData();
-    this._fetchInterval = setInterval(() => this._fetchData(), 15000);
     this._animInterval = setInterval(() => this._animateFromTimeline(), 1000);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    clearInterval(this._fetchInterval);
     clearInterval(this._animInterval);
   }
 
-  async _fetchData() {
-    try {
-      const res = await fetch('https://www.ksnoordwijkwind.nl/currentwind');
-      const data = await res.json();
-      this.windSpeed = data.windKn ?? data.wind ?? 0;
-      this.gust = data.gustKn ?? data.vlagen ?? 0;
-      this.direction = data.windDir ?? data.richting ?? data.direction ?? 0;
-      this.dateTime = data.dateTime;
-      this.isLive = data.isLive;
-      this._timeline = data.timeLineLast15sec || [];
-      this._timelineIndex = 0;
-    } catch (e) {
-      // ignore fetch errors
-      console.error(e);
+  setConfig(config) {
+    if (!config.entity) {
+      throw new Error('Entity is required');
     }
+    this.config = config;
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    this._updateFromEntity();
+  }
+
+  get hass() {
+    return this._hass;
+  }
+
+  _updateFromEntity() {
+    if (!this._hass || !this.config) return;
+    const stateObj = this._hass.states[this.config.entity];
+    if (!stateObj || !stateObj.attributes || !stateObj.attributes.data) return;
+    const data = stateObj.attributes.data;
+    const dirs = Array.isArray(data.direction) ? data.direction : [];
+    const speeds = Array.isArray(data.speed) ? data.speed : [];
+    const gusts = Array.isArray(data.gusts) ? data.gusts : [];
+    const len = Math.min(dirs.length, speeds.length, gusts.length);
+    this._timeline = [];
+    for (let i = 0; i < len; i++) {
+      this._timeline.push({
+        direction: Number(dirs[i]),
+        wind: Number(speeds[i]),
+        gust: Number(gusts[i]),
+      });
+    }
+    this._timelineIndex = 0;
   }
 
   _animateFromTimeline() {
     if (!this._timeline || this._timeline.length === 0) return;
     const frame = this._timeline[this._timelineIndex];
     if (frame) {
-      this.windSpeed = frame.windKn ?? frame.wind ?? this.windSpeed;
-      this.gust = frame.gustKn ?? frame.vlagen ?? this.gust;
-      this.direction =
-        frame.windDir ?? frame.richting ?? frame.direction ?? this.direction;
+      this.windSpeed = frame.wind ?? this.windSpeed;
+      this.gust = frame.gust ?? this.gust;
+      this.direction = frame.direction ?? this.direction;
     }
     this._timelineIndex = (this._timelineIndex + 1) % this._timeline.length;
   }

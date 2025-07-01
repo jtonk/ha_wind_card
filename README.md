@@ -7,6 +7,7 @@ Wind Card is a simple [Home Assistant](https://www.home-assistant.io/) custom ca
 - Animated direction arrow
 - Wind rose with N/E/S/W indicators
 - Speed scale markings every 5 kn
+- Radial graph showing speed and gusts
 - Works with an entity that exposes `direction`, `speed` and `gusts` arrays in its `data` attribute
 
 ## Installation

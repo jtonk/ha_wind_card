@@ -130,12 +130,22 @@ class WindCard extends LitElement {
         width: 100%;
         height: 100%;
       }
-      .center-text {
+      .info {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;
+        font-family: var(--ha-card-font-family, var(--paper-font-body1_-_font-family));
+        color: var(--primary-text-color, #212121);
+      }
+      .info .direction,
+      .info .gust {
+        font-size: 0.75em;
+      }
+      .info .speed {
+        font-size: 1.4em;
+        line-height: 1;
       }
       .date {
         position: absolute;
@@ -149,9 +159,6 @@ class WindCard extends LitElement {
       .ring text {
         fill: var(--primary-text-color, #212121);
         font-weight: bold;
-      }
-      .elements text {
-        fill: var(--primary-text-color, #212121);
       }
     `;
   }
@@ -203,11 +210,6 @@ class WindCard extends LitElement {
             transform="rotate(-90 50 50)"
             opacity="0.6"
           ></circle>
-          <g class="elements">
-            <text text-anchor="middle" alignment-baseline="alphabetic" class="top marker" x="50" y="36" font-size="6">${dirText}</text>
-            <text alignment-baseline="alphabetic" class="middle" x="50" y="50" text-anchor="middle" font-size="14">${this.windSpeed.toFixed(1)}</text>
-            <text alignment-baseline="alphabetic" class="middle unit" x="50" y="58" text-anchor="middle" font-size="6">${this.gust.toFixed(1)} kn</text>
-          </g>
           <g class="ring">
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="94" font-size="11">S</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="6" y="50" font-size="11">W</text>
@@ -218,10 +220,15 @@ class WindCard extends LitElement {
           </g>
           <g class="indicators">
             <g class="marker compass" transform="rotate(${this.direction + 180} 50 50)">
-              <path stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50 97.33333333333333 l 9.2 -15.93486742963367 l -9.2 3.0666666666666664 l -9.2 -3.0666666666666664 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(180 50 90)"></path>
+              <path stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50 97.333 l 7.36 -12.748 l -7.36 2.453 l -7.36 -2.453 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(180 50 90)"></path>
             </g>
           </g>
         </svg>
+        <div class="info">
+          <div class="direction">${dirText}</div>
+          <div class="speed">${this.windSpeed.toFixed(1)}</div>
+          <div class="gust">${this.gust.toFixed(1)} kn</div>
+        </div>
         <div class="date">${this.dateTime} ${this.isLive ? '(live)' : ''}</div>
       </div>
     `;

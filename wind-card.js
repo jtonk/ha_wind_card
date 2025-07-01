@@ -190,7 +190,7 @@ class WindCard extends LitElement {
             r="${radius}"
             fill="none"
             stroke="var(--primary-text-color, #212121)"
-            stroke-width="2"
+            stroke-width="6"
             stroke-dasharray="${circumference}"
             stroke-dashoffset="${gustOffset}"
             style="transition: stroke-dashoffset 1s linear;"
@@ -198,9 +198,9 @@ class WindCard extends LitElement {
             opacity="0.6"
           ></circle>
           <g class="elements">
-            <text text-anchor="middle" alignment-baseline="alphabetic" class="top marker" x="50" y="28.428571428571427" font-size="12">${dirText}</text>
-            <text alignment-baseline="alphabetic" class="middle" x="50" y="58.2688" text-anchor="middle" font-size="28.9408">${this.windSpeed.toFixed(1)}</text>
-            <text alignment-baseline="alphabetic" class="middle unit" x="50" y="73.42857142857143" text-anchor="middle" font-size="12"> kn</text>
+            <text text-anchor="middle" alignment-baseline="alphabetic" class="top marker" x="50" y="28.428571428571427" font-size="9">${dirText}</text>
+            <text alignment-baseline="alphabetic" class="middle" x="50" y="58.2688" text-anchor="middle" font-size="14">${this.windSpeed.toFixed(1)} kn</text>
+            <text alignment-baseline="alphabetic" class="middle unit" x="50" y="73.42857142857143" text-anchor="middle" font-size="9">${this.gust.toFixed(1)} kn</text>
           </g>
           <g class="ring">
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="96.64" font-size="11.2">S</text>

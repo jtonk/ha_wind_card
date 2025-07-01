@@ -121,8 +121,8 @@ class WindCard extends LitElement {
       }
       .container {
         position: relative;
-        width: 100px;
-        height: 100px;
+        width: 200px;
+        height: 200px;
         margin: auto;
       }
       svg {
@@ -208,7 +208,7 @@ class WindCard extends LitElement {
             <text alignment-baseline="alphabetic" class="middle unit" x="50" y="58" text-anchor="middle" font-size="6">${this.gust.toFixed(1)} kn</text>
           </g>
           <g class="ring">
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="92" font-size="11">S</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="94" font-size="11">S</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="6" y="50" font-size="11">W</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="6" font-size="11">N</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="94" y="50" font-size="11">E</text>

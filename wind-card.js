@@ -144,7 +144,8 @@ class WindCard extends LitElement {
         font-size: 0.75em;
       }
       .info .speed {
-        font-size: 1.4em;
+        font-size: 3.5em;
+        font-weight: 800;
         line-height: 1;
       }
       .date {
@@ -222,9 +223,9 @@ class WindCard extends LitElement {
             <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
           </g>
           <g class="indicators">
-            <g class="marker compass" transform="rotate(${this.direction + 180} 50 50)">
+              <g class="marker compass" transform="rotate(${this.direction + 180} 50 50)">
               <path stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50 97.333 l 7.36 -12.748 l -7.36 2.453 l -7.36 -2.453 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(180 50 90)"></path>
-            </g>
+              </g>
           </g>
         </svg>
         <div class="info">

@@ -213,8 +213,8 @@ class WindCard extends LitElement {
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="6" font-size="11">N</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="94" y="50" font-size="11">E</text>
             <path class="compass cardinals" stroke-width="2" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" d=""></path>
-            <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="0.7" d="${majorPath}"></path>
-            <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="0.3" d="${minorPath}"></path>
+            <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
+            <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
           </g>
           <g class="indicators">
             <g class="marker compass" transform="rotate(${this.direction + 180} 50 50)">

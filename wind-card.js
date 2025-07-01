@@ -155,9 +155,48 @@ class WindCard extends LitElement {
     const majorPath = this._buildTickPath(50, 3.5, 30);
     const minorPath = this._buildTickPath(50, 1.5, 5);
 
+    const maxSpeed = 60;
+    const radius = 45;
+    const circumference = 2 * Math.PI * radius;
+    const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
+    const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
+
     return html`
       <div class="container">
         <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
+          <circle
+            cx="50"
+            cy="50"
+            r="${radius}"
+            fill="none"
+            stroke="#eee"
+            stroke-width="6"
+          ></circle>
+          <circle
+            cx="50"
+            cy="50"
+            r="${radius}"
+            fill="none"
+            stroke="var(--primary-text-color, #212121)"
+            stroke-width="6"
+            stroke-dasharray="${circumference}"
+            stroke-dashoffset="${speedOffset}"
+            style="transition: stroke-dashoffset 1s linear;"
+            transform="rotate(-90 50 50)"
+          ></circle>
+          <circle
+            cx="50"
+            cy="50"
+            r="${radius}"
+            fill="none"
+            stroke="var(--primary-text-color, #212121)"
+            stroke-width="2"
+            stroke-dasharray="${circumference}"
+            stroke-dashoffset="${gustOffset}"
+            style="transition: stroke-dashoffset 1s linear;"
+            transform="rotate(-90 50 50)"
+            opacity="0.6"
+          ></circle>
           <g class="elements">
             <text text-anchor="middle" alignment-baseline="alphabetic" class="top marker" x="50" y="28.428571428571427" font-size="12">${dirText}</text>
             <text alignment-baseline="alphabetic" class="middle" x="50" y="58.2688" text-anchor="middle" font-size="28.9408">${this.windSpeed.toFixed(1)}</text>

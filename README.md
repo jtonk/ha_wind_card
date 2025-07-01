@@ -1,23 +1,38 @@
 # Wind Card
 
-This repository provides a Home Assistant custom card for displaying wind data stored in a Home Assistant entity. The card reads arrays of `direction`, `speed` and `gusts` from the entity's `data` attribute and animates the values.
+Wind Card is a simple [Home Assistant](https://www.home-assistant.io/) custom card for visualising wind data. The card animates direction, speed and gust values provided by an entity.
 
-Place `wind-card.js` in your Home Assistant `www` directory or install it via HACS.
-If you use [HACS](https://hacs.xyz/) copy this repository's URL in the "Custom repositories" section and select the "Plugin" category.
-After installation add it as a resource:
+## Features
+- Shows current wind speed and gusts in knots
+- Animated direction arrow
+- Works with an entity that exposes `direction`, `speed` and `gusts` arrays in its `data` attribute
 
+## Installation
+### With HACS
+1. In HACS, add this repository as a custom repository under the **Plugin** category.
+2. Install **Wind Card** from HACS.
+3. After installation click **Add to Lovelace** so that HACS creates the resource entry:
+   ```yaml
+   url: /hacsfiles/wind-card/wind-card.js
+   type: module
+   ```
+   If you skip this step you must add the resource manually.
+
+### Manual
+Copy `wind-card.js` into your `www` folder and reference it as a module resource:
 ```yaml
 resources:
   - url: /local/wind-card.js
     type: module
 ```
 
-Then use the card in your dashboard:
-
+## Using the Card
+Add a card of type `custom:wind-card` and point it to an entity containing wind data:
 ```yaml
 type: custom:wind-card
 entity: sensor.my_wind
 ```
+The entity should have a `data` attribute with arrays named `direction`, `speed` and `gusts`. The card cycles through these values once per second.
 
-The card updates whenever the entity state changes. The entity's `data` attribute should contain three arrays named `direction`, `speed` and `gusts` with the latest values.
+If you see `i.setConfig is not a function`, Home Assistant could not load the script. Ensure the resource URL above is present and refresh the browser.
 

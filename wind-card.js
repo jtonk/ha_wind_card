@@ -158,7 +158,7 @@ class WindCard extends LitElement {
       .compass {
         transition: transform 1s linear;
         -webkit-transition: -webkit-transform 1s linear;
-        transform-origin: 50% 50%;
+        transform-origin: center;
         transform-box: fill-box;
       }
       .ring text {

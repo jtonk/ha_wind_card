@@ -173,7 +173,7 @@ class WindCard extends LitElement {
     const minorPath = this._buildTickPath(42, 1.5, 5, [355,0,5,85,90,95,175,180,185,265,270,275]);
 
     const maxSpeed = 60;
-    const radius = 35;
+    const radius = 44;
     const circumference = 2 * Math.PI * radius;
     const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
@@ -187,7 +187,8 @@ class WindCard extends LitElement {
             r="${radius}"
             fill="none"
             stroke="var(--divider-color, #eee)"
-            stroke-width="6"
+            stroke-width="4"
+            opacity="0"
           ></circle>
           <circle
             cx="50"
@@ -195,7 +196,7 @@ class WindCard extends LitElement {
             r="${radius}"
             fill="none"
             stroke="var(--primary-text-color, #212121)"
-            stroke-width="6"
+            stroke-width="4"
             stroke-dasharray="${circumference}"
             stroke-dashoffset="${speedOffset}"
             style="transition: stroke-dashoffset 1s linear;"
@@ -206,8 +207,8 @@ class WindCard extends LitElement {
             cy="50"
             r="${radius}"
             fill="none"
-            stroke="var(--secondary-text-color, #727272)"
-            stroke-width="6"
+            stroke="var(--primary-text-color, #212121)"
+            stroke-width="4"
             stroke-dasharray="${circumference}"
             stroke-dashoffset="${gustOffset}"
             style="transition: stroke-dashoffset 1s linear;"

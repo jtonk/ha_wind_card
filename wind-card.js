@@ -85,6 +85,7 @@ class WindCard extends LitElement {
       this.windSpeed = frame.wind ?? this.windSpeed;
       this.gust = frame.gust ?? this.gust;
       this.direction = frame.direction ?? this.direction;
+      console.log('Direction:', this.direction);
     }
     this._timelineIndex = (this._timelineIndex + 1) % this._timeline.length;
   }
@@ -157,8 +158,6 @@ class WindCard extends LitElement {
       .compass {
         transition: transform 1s linear;
         -webkit-transition: -webkit-transform 1s linear;
-        transform-box: fill-box;
-        transform-origin: center;
       }
       .ring text {
         fill: var(--primary-text-color, #212121);

@@ -143,6 +143,7 @@ class WindCard extends LitElement {
       }
       .compass {
         transition: transform 1s linear;
+        -webkit-transition: -webkit-transform 1s linear;
       }
       .ring text {
         fill: var(--primary-text-color, #212121);

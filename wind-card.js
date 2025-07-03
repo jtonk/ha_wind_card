@@ -210,10 +210,10 @@ class WindCard extends LitElement {
             ></circle>
 
             <g class="ring">
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - radius + cardinal_offset}" font-size="11">N</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + radius - cardinal_offset}" y="50" font-size="11">E</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + radius - cardinal_offset}" font-size="11">S</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - radius + cardinal_offset}" y="50" font-size="11">W</text>              
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - radius_tickPath + cardinal_offset}" font-size="11">N</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + radius_tickPath - cardinal_offset}" y="50" font-size="11">E</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + radius_tickPath - cardinal_offset}" font-size="11">S</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - radius_tickPath + cardinal_offset}" y="50" font-size="11">W</text>              
               <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
               <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
             </g>
@@ -221,96 +221,96 @@ class WindCard extends LitElement {
 
             <g class="unit-labels">
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 5 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 5 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 5 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 5 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="black"
               >5</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 10 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 10 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 10 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 10 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="black"
               >10</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 15 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 15 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 15 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 15 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="black"
               >15</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 20 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 20 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 20 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 20 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="black"
               >20</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 25 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 25 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 25 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 25 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="black"
               >25</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 30 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 30 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 30 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 30 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="black"
               >30</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 35 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 35 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 35 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 35 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="black"
               >35</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 40 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 40 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 40 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 40 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="black"
               >40</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 45 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 45 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 45 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 45 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="black"
               >45</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 50 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 50 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 50 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 50 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="black"
               >50</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 55 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 55 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 55 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 55 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="black"
               >55</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius + 4, 60 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius + 4, 60 * 6).y}"
+                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 60 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 60 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"

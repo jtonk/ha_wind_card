@@ -172,8 +172,8 @@ class WindCard extends LitElement {
     const radius = this.radius;
     const radius_tickPath = this.radius_tickPath;
     const cardinal_offset = this.cardinal_offset;
-    const majorPath = this._buildTickPath(radius_tickPath, 3.5, 30, [0, 90, 180, 270]);
-    const minorPath = this._buildTickPath(radius_tickPath, 1.5, 5, [355, 0, 5, 85, 90, 95, 175, 180, 185, 265, 270, 275]);
+    const majorPath = this._buildTickPath(radius_tickPath, 4, 30, [0, 90, 180, 270]);
+    const minorPath = this._buildTickPath(radius_tickPath, 2, 5, [355, 0, 5, 85, 90, 95, 175, 180, 185, 265, 270, 275]);
     const circumference = 2 * Math.PI * radius;
     const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
@@ -188,7 +188,7 @@ class WindCard extends LitElement {
               r="${radius}"
               fill="none"
               stroke="var(--primary-text-color, #212121)"
-              stroke-width="2"
+              stroke-width="4"
               stroke-dasharray="${circumference}"
               stroke-dashoffset="${speedOffset}"
               style="transition: stroke-dashoffset 1s linear;"
@@ -201,7 +201,7 @@ class WindCard extends LitElement {
               r="${radius}"
               fill="none"
               stroke="var(--primary-text-color, #212121)"
-              stroke-width="2"
+              stroke-width="4"
               stroke-dasharray="${circumference}"
               stroke-dashoffset="${gustOffset}"
               style="transition: stroke-dashoffset 1s linear;"

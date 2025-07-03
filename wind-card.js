@@ -51,10 +51,21 @@ class WindCard extends LitElement {
     return this._hass;
   }
 
+  updated() {
+    // Force repaint of SVG <text> nodes to fix Lit rendering bug
+    const labels = this.renderRoot.querySelectorAll('.unit-labels text');
+    labels.forEach(el => {
+      const val = el.textContent;
+      el.textContent = '';
+      el.textContent = val;
+    });
+  }
+
   _updateFromEntity() {
     if (!this._hass || !this.config) return;
     const stateObj = this._hass.states[this.config.entity];
-    if (!stateObj || !stateObj.attributes || !stateObj.attributes.data) return;
+    if (!stateObj?.attributes?.data) return;
+
     const data = stateObj.attributes.data;
     const dirs = Array.isArray(data.direction) ? data.direction : [];
     const speeds = Array.isArray(data.speed) ? data.speed : [];
@@ -109,37 +120,26 @@ class WindCard extends LitElement {
   }
 
   _buildUnitLabels(radius, offset) {
-    const frag = document.createDocumentFragment();
-    for (let i = 1; i <= 12; i++) {
-      const value = i * 5;
-      const angle = value * 6;
-      const pos = this._polarToCartesian(50, 50, radius + offset, angle);
-
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('x', pos.x);
-      text.setAttribute('y', pos.y);
-      text.setAttribute('font-size', '4');
-      text.setAttribute('text-anchor', 'middle');
-      text.setAttribute('dominant-baseline', 'middle');
-      text.setAttribute('fill', 'black');
-      text.textContent = value.toString();
-
-      frag.appendChild(text);
-    }
-    return html`<g class="unit-labels" ${this._injectSVGFragment(frag)}></g>`;
-  }
-
-  _injectSVGFragment(fragment) {
-    return {
-      [Symbol.for('lit-html-directive')]: true,
-      _$litType$: 1,
-      render: () => '',
-      update(part) {
-        const parent = part.committer.element;
-        parent.innerHTML = '';
-        parent.appendChild(fragment);
-      },
-    };
+    return html`
+      <g class="unit-labels">
+        ${Array.from({ length: 12 }, (_, i) => {
+          const value = (i + 1) * 5;
+          const angle = value * 6;
+          const pos = this._polarToCartesian(50, 50, radius + offset, angle);
+          return html`
+            <text
+              x="${pos.x}"
+              y="${pos.y}"
+              font-size="4"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              fill="black"
+              .textContent="${value}"
+            ></text>
+          `;
+        })}
+      </g>
+    `;
   }
 
   static get styles() {
@@ -193,8 +193,31 @@ class WindCard extends LitElement {
       <ha-card>
         <div class="container" style="width:${this.size}px; height:${this.size}px;">
           <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
-            <circle cx="50" cy="50" r="${radius}" fill="none" stroke="var(--primary-text-color, #212121)" stroke-width="2" stroke-dasharray="${circumference}" stroke-dashoffset="${speedOffset}" style="transition: stroke-dashoffset 1s linear;" transform="rotate(-90 50 50)"></circle>
-            <circle cx="50" cy="50" r="${radius}" fill="none" stroke="var(--primary-text-color, #212121)" stroke-width="2" stroke-dasharray="${circumference}" stroke-dashoffset="${gustOffset}" style="transition: stroke-dashoffset 1s linear;" transform="rotate(-90 50 50)" opacity="0.4"></circle>
+            <circle
+              cx="50"
+              cy="50"
+              r="${radius}"
+              fill="none"
+              stroke="var(--primary-text-color, #212121)"
+              stroke-width="2"
+              stroke-dasharray="${circumference}"
+              stroke-dashoffset="${speedOffset}"
+              style="transition: stroke-dashoffset 1s linear;"
+              transform="rotate(-90 50 50)"
+            ></circle>
+            <circle
+              cx="50"
+              cy="50"
+              r="${radius}"
+              fill="none"
+              stroke="var(--primary-text-color, #212121)"
+              stroke-width="2"
+              stroke-dasharray="${circumference}"
+              stroke-dashoffset="${gustOffset}"
+              style="transition: stroke-dashoffset 1s linear;"
+              transform="rotate(-90 50 50)"
+              opacity="0.4"
+            ></circle>
 
             <g class="ring">
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="89" font-size="11">S</text>

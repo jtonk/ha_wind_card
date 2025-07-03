@@ -81,7 +81,6 @@ class WindCard extends LitElement {
       this.windSpeed = frame.wind ?? this.windSpeed;
       this.gust = frame.gust ?? this.gust;
       this.direction = frame.direction ?? this.direction;
-      this.requestUpdate(); // <-- Add this
     }
     this._timelineIndex = (this._timelineIndex + 1) % this._timeline.length;
   }

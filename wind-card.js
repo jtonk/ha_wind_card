@@ -9,6 +9,9 @@ class WindCard extends LitElement {
       gust: { type: Number },
       direction: { type: Number },
       size: { type: Number },
+      radius: { type: Number },
+      cardinal_offset: { type: Number },
+      radius_tickPath: { type: Number },
       _timeline: { type: Array },
       _timelineIndex: { type: Number }
     };
@@ -22,6 +25,9 @@ class WindCard extends LitElement {
     this.gust = 0;
     this.direction = 0;
     this.size = 200;
+    this.radius = 40;
+    this.cardinal_offset = 4;
+    this.radius_tickPath = 38;
     this._timeline = [];
     this._timelineIndex = 0;
   }
@@ -40,6 +46,9 @@ class WindCard extends LitElement {
     if (!config.entity) throw new Error('Entity is required');
     this.config = config;
     this.size = Number(config.size || 200);
+    this.radius = Number(config.radius || 40);
+    this.cardinal_offset = Number(config.cardinal_offset || 4);
+    this.radius_tickPath = Number(config.radius_tickPath || 38);
   }
 
   set hass(hass) {
@@ -160,9 +169,9 @@ class WindCard extends LitElement {
   render() {
     const dirText = this._directionToText(this.direction);
     const maxSpeed = 60;
-    const radius = 40;
-    const radius_tickPath = 38
-    const cardinal_offset = 4;
+    const radius = this.radius;
+    const radius_tickPath = this.radius_tickPath;
+    const cardinal_offset = this.cardinal_offset;
     const majorPath = this._buildTickPath(radius_tickPath, 3.5, 30, [0, 90, 180, 270]);
     const minorPath = this._buildTickPath(radius_tickPath, 1.5, 5, [355, 0, 5, 85, 90, 95, 175, 180, 185, 265, 270, 275]);
     const circumference = 2 * Math.PI * radius;

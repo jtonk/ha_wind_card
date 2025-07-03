@@ -124,13 +124,13 @@ class WindCard extends LitElement {
           text-anchor="middle"
           dominant-baseline="middle"
           fill="black"
-        >
-          ${String(value)}
-        </text>
+          .textContent="${value}"
+        ></text>
       `);
     }
     return html`${labels}`;
   }
+
 
 
   static get styles() {

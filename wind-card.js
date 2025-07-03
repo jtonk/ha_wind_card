@@ -187,7 +187,7 @@ class WindCard extends LitElement {
             stroke-dashoffset="${gustOffset}"
             style="transition: stroke-dashoffset 1s linear;"
             transform="rotate(-90 50 50)"
-            opacity="0.6"
+            opacity="0.4"
           ></circle>
 
           <g class="ring">
@@ -195,9 +195,9 @@ class WindCard extends LitElement {
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="12" y="50" font-size="11">W</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="12" font-size="11">N</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="90" y="50" font-size="11">E</text>
+            <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
             <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
-            <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
-
+            
             <!-- Unit Labels: 5, 10, ..., 60 -->
             ${[...Array(12)].map((_, i) => {
               const value = (i + 1) * 5;

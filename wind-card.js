@@ -152,7 +152,7 @@ class WindCard extends LitElement {
   render() {
     const dirText = this._directionToText(this.direction);
     const majorPath = this._buildTickPath(42, 3.5, 30, [0, 90, 180, 270]);
-    const minorPath = this._buildTickPath(42, 1.5, 5, [355,0,5,85,90,95,175,180,185,265,270,275]);
+    const minorPath = this._buildTickPath(42, 1.5, 5, [355, 0, 5, 85, 90, 95, 175, 180, 185, 265, 270, 275]);
 
     const maxSpeed = 60;
     const radius = 44;
@@ -189,6 +189,7 @@ class WindCard extends LitElement {
             transform="rotate(-90 50 50)"
             opacity="0.6"
           ></circle>
+
           <g class="ring">
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="89" font-size="11">S</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="12" y="50" font-size="11">W</text>
@@ -196,14 +197,28 @@ class WindCard extends LitElement {
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="90" y="50" font-size="11">E</text>
             <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
             <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
+
+            <!-- Unit Labels: 5, 10, ..., 60 -->
+            ${[...Array(12)].map((_, i) => {
+              const value = (i + 1) * 5;
+              const angle = value * 6;
+              const pos = this._polarToCartesian(50, 50, radius + 5, angle);
+              return html`<text x="${pos.x}" y="${pos.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">${value}</text>`;
+            })}
           </g>
+
           <g class="indicators">
-              <path class="marker compass" stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50,86 55,88.91525 50,76.288132 45,88.91525 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(${this.direction + 180},50,50)"></path>
+            <path class="marker compass" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"
+              d="M 50,86 55,88.91525 50,76.288132 45,88.91525 Z"
+              fill="rgb(68,115,158)" stroke-width="0"
+              transform="rotate(${this.direction + 180},50,50)">
+            </path>
           </g>
+
           <g class="info">
-            <text class="direction" x="50" y="34" text-anchor="middle" alignment-baseline="central">${dirText}</text>
-            <text class="speed" x="50" y="50" text-anchor="middle" alignment-baseline="central">${this.windSpeed.toFixed(1)}</text>
-            <text class="gust" x="50" y="66" text-anchor="middle" alignment-baseline="central">${this.gust.toFixed(1)} kn</text>
+            <text class="direction" x="50" y="34">${dirText}</text>
+            <text class="speed" x="50" y="50">${this.windSpeed.toFixed(1)}</text>
+            <text class="gust" x="50" y="66">${this.gust.toFixed(1)} kn</text>
           </g>
 
         </svg>

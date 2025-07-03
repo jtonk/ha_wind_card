@@ -33,9 +33,12 @@ Add a card of type `custom:wind-card` and point it to an entity containing wind 
 type: custom:wind-card
 entity: sensor.my_wind
 size: 250
-radius: 40
+gauge_radius: 40
+gauge_width: 2
 cardinal_offset: 4
-radius_tickPath: 38
+tickPath_radius: 38
+tickPath_width: 4
+units_offset: 4
 ```
-The optional parameters `size`, `radius`, `cardinal_offset` and `radius_tickPath` control the dimensions of the compass. If omitted their defaults are 200, 40, 4 and 38 respectively.
+The optional parameters `size`, `gauge_radius`, `gauge_width`, `cardinal_offset`, `tickPath_radius`, `tickPath_width` and `units_offset` control the dimensions of the compass. If omitted their defaults are 200, 40, 2, 4, 38, 4 and 4 respectively.
 The entity should have a `data` attribute with arrays named `direction`, `speed` and `gusts`. The card cycles through these values once per second.

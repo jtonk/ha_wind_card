@@ -9,9 +9,12 @@ class WindCard extends LitElement {
       gust: { type: Number },
       direction: { type: Number },
       size: { type: Number },
-      radius: { type: Number },
+      gauge_radius: { type: Number },
+      gauge_width: { type: Number },
       cardinal_offset: { type: Number },
-      radius_tickPath: { type: Number },
+      tickPath_radius: { type: Number },
+      tickPath_width: { type: Number },
+      units_offset: { type: Number },
       _timeline: { type: Array },
       _timelineIndex: { type: Number }
     };
@@ -25,9 +28,12 @@ class WindCard extends LitElement {
     this.gust = 0;
     this.direction = 0;
     this.size = 200;
-    this.radius = 40;
+    this.gauge_radius = 40;
+    this.gauge_width = 2;
     this.cardinal_offset = 4;
-    this.radius_tickPath = 38;
+    this.tickPath_radius = 38;
+    this.tickPath_width = 4;
+    this.units_offset = 4;
     this._timeline = [];
     this._timelineIndex = 0;
   }
@@ -46,9 +52,12 @@ class WindCard extends LitElement {
     if (!config.entity) throw new Error('Entity is required');
     this.config = config;
     this.size = Number(config.size || 200);
-    this.radius = Number(config.radius || 40);
+    this.gauge_radius = Number(config.gauge_radius || 40);
+    this.gauge_width = Number(config.gauge_width || 2);
     this.cardinal_offset = Number(config.cardinal_offset || 4);
-    this.radius_tickPath = Number(config.radius_tickPath || 38);
+    this.tickPath_radius = Number(config.tickPath_radius || 38);
+    this.tickPath_width = Number(config.tickPath_width || 4);
+    this.units_offset = Number(config.units_offset || 4);
   }
 
   set hass(hass) {
@@ -169,11 +178,13 @@ class WindCard extends LitElement {
   render() {
     const dirText = this._directionToText(this.direction);
     const maxSpeed = 60;
-    const radius = this.radius;
-    const radius_tickPath = this.radius_tickPath;
+    const radius = this.gauge_radius;
+    const tickPath_radius = this.tickPath_radius;
+    const tick_length_major = this.tickPath_width;
+    const tick_length_minor = this.tickPath_width / 2;
     const cardinal_offset = this.cardinal_offset;
-    const majorPath = this._buildTickPath(radius_tickPath, 4, 30, [0, 90, 180, 270]);
-    const minorPath = this._buildTickPath(radius_tickPath, 2, 5, [355, 0, 5, 85, 90, 95, 175, 180, 185, 265, 270, 275]);
+    const majorPath = this._buildTickPath(tickPath_radius, tick_length_major, 30, [0, 90, 180, 270]);
+    const minorPath = this._buildTickPath(tickPath_radius, tick_length_minor, 5, [355, 0, 5, 85, 90, 95, 175, 180, 185, 265, 270, 275]);
     const circumference = 2 * Math.PI * radius;
     const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
@@ -188,7 +199,7 @@ class WindCard extends LitElement {
               r="${radius}"
               fill="none"
               stroke="var(--primary-text-color, #212121)"
-              stroke-width="4"
+              stroke-width="${this.gauge_width}"
               stroke-dasharray="${circumference}"
               stroke-dashoffset="${speedOffset}"
               style="transition: stroke-dashoffset 1s linear;"
@@ -201,7 +212,7 @@ class WindCard extends LitElement {
               r="${radius}"
               fill="none"
               stroke="var(--primary-text-color, #212121)"
-              stroke-width="4"
+              stroke-width="${this.gauge_width}"
               stroke-dasharray="${circumference}"
               stroke-dashoffset="${gustOffset}"
               style="transition: stroke-dashoffset 1s linear;"
@@ -210,10 +221,10 @@ class WindCard extends LitElement {
             ></circle>
 
             <g class="ring">
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - radius_tickPath + cardinal_offset}" font-size="11">N</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + radius_tickPath - cardinal_offset}" y="50" font-size="11">E</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + radius_tickPath - cardinal_offset}" font-size="11">S</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - radius_tickPath + cardinal_offset}" y="50" font-size="11">W</text>              
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - tickPath_radius + cardinal_offset}" font-size="11">N</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + tickPath_radius - cardinal_offset}" y="50" font-size="11">E</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + tickPath_radius - cardinal_offset}" font-size="11">S</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - tickPath_radius + cardinal_offset}" y="50" font-size="11">W</text>              
               <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
               <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
             </g>
@@ -221,96 +232,96 @@ class WindCard extends LitElement {
 
             <g class="unit-labels">
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 5 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 5 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 5 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 5 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="var(--primary-text-color, #212121);"
               >5</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 10 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 10 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 10 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 10 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="var(--primary-text-color, #212121);"
               >10</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 15 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 15 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 15 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 15 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="var(--primary-text-color, #212121);"
               >15</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 20 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 20 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 20 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 20 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="var(--primary-text-color, #212121);"
               >20</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 25 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 25 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 25 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 25 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="var(--primary-text-color, #212121);"
               >25</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 30 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 30 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 30 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 30 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="var(--primary-text-color, #212121);"
               >30</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 35 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 35 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 35 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 35 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="var(--primary-text-color, #212121);"
               >35</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 40 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 40 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 40 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 40 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="var(--primary-text-color, #212121);"
               >40</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 45 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 45 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 45 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 45 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="var(--primary-text-color, #212121);"
               >45</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 50 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 50 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 50 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 50 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="var(--primary-text-color, #212121);"
               >50</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 55 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 55 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 55 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 55 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 fill="var(--primary-text-color, #212121);"
               >55</text>
               <text
-                x="${this._polarToCartesian(50, 50, radius_tickPath + 4, 60 * 6).x}"
-                y="${this._polarToCartesian(50, 50, radius_tickPath + 4, 60 * 6).y}"
+                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 60 * 6).x}"
+                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 60 * 6).y}"
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
@@ -320,7 +331,7 @@ class WindCard extends LitElement {
 
             <g class="indicators">
               <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"
-                d="m 50,${radius_tickPath + 46} l 5,3 l -5,-12 l -5,12 z"
+                d="m 50,${tickPath_radius + 46} l 5,3 l -5,-12 l -5,12 z"
                 fill="rgb(68,115,158)" stroke-width="0"
                 transform="rotate(${this.direction + 180},50,50)">
               </path>

@@ -122,7 +122,7 @@ class WindCard extends LitElement {
         </text>
       `);
     }
-    return labels;
+    return html`${labels}`;
   }
 
   static get styles() {

@@ -163,6 +163,7 @@ class WindCard extends LitElement {
     const minorPath = this._buildTickPath(38, 1.5, 5, [355, 0, 5, 85, 90, 95, 175, 180, 185, 265, 270, 275]);
     const maxSpeed = 60;
     const radius = 40;
+    const cardinal_offset = 4;
     const circumference = 2 * Math.PI * radius;
     const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
@@ -199,10 +200,10 @@ class WindCard extends LitElement {
             ></circle>
 
             <g class="ring">
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - radius + 4}" font-size="11">N</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + radius - 4}" y="50" font-size="11">E</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + radius - 4}" font-size="11">S</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - radius + 4}" y="50" font-size="11">W</text>              
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - radius + cardinal_offset}" font-size="11">N</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + radius - cardinal_offset}" y="50" font-size="11">E</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + radius - cardinal_offset}" font-size="11">S</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - radius + cardinal_offset}" y="50" font-size="11">W</text>              
               <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
               <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
             </g>

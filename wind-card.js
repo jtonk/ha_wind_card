@@ -51,16 +51,6 @@ class WindCard extends LitElement {
     return this._hass;
   }
 
-  firstUpdated() {
-    // Force SVG <text> rendering
-    setTimeout(() => {
-      const labels = this.renderRoot.querySelectorAll('.unit-labels text');
-      labels.forEach(el => {
-        el.textContent = el.textContent; // Force re-render
-      });
-    }, 0);
-  }
-
   _updateFromEntity() {
     if (!this._hass || !this.config) return;
     const stateObj = this._hass.states[this.config.entity];
@@ -119,24 +109,37 @@ class WindCard extends LitElement {
   }
 
   _buildUnitLabels(radius, offset) {
-    return html`
-      ${Array.from({ length: 12 }, (_, i) => {
-        const value = (i + 1) * 5;
-        const angle = value * 6;
-        const pos = this._polarToCartesian(50, 50, radius + offset, angle);
-        return html`
-          <text
-            x="${pos.x}"
-            y="${pos.y}"
-            font-size="4"
-            text-anchor="middle"
-            dominant-baseline="middle"
-            fill="black"
-            .textContent="${value}"
-          ></text>
-        `;
-      })}
-    `;
+    const frag = document.createDocumentFragment();
+    for (let i = 1; i <= 12; i++) {
+      const value = i * 5;
+      const angle = value * 6;
+      const pos = this._polarToCartesian(50, 50, radius + offset, angle);
+
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', pos.x);
+      text.setAttribute('y', pos.y);
+      text.setAttribute('font-size', '4');
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'middle');
+      text.setAttribute('fill', 'black');
+      text.textContent = value.toString();
+
+      frag.appendChild(text);
+    }
+    return html`<g class="unit-labels" ${this._injectSVGFragment(frag)}></g>`;
+  }
+
+  _injectSVGFragment(fragment) {
+    return {
+      [Symbol.for('lit-html-directive')]: true,
+      _$litType$: 1,
+      render: () => '',
+      update(part) {
+        const parent = part.committer.element;
+        parent.innerHTML = '';
+        parent.appendChild(fragment);
+      },
+    };
   }
 
   static get styles() {
@@ -169,8 +172,7 @@ class WindCard extends LitElement {
       .marker {
         transition: transform 1s linear;
       }
-      .ring text,
-      .unit-labels text {
+      .ring text {
         fill: var(--primary-text-color, #212121);
         font-weight: bold;
       }
@@ -203,9 +205,7 @@ class WindCard extends LitElement {
               <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
             </g>
 
-            <g class="unit-labels">
-              ${this._buildUnitLabels(radius, 4)}
-            </g>
+            ${this._buildUnitLabels(radius, 4)}
 
             <g class="indicators">
               <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"

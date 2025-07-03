@@ -1,4 +1,4 @@
-// Wind card custom element
+// Wind card custom element testing
 import { LitElement, html, css } from 'https://unpkg.com/lit-element/lit-element.js?module';
 
 class WindCard extends LitElement {

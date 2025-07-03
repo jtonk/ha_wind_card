@@ -1,14 +1,12 @@
 # Wind Card
 
-Wind Card is a simple [Home Assistant](https://www.home-assistant.io/) custom card for visualising wind data. The card animates direction, speed and gust values provided by an entity.
+Wind Card is a [Home Assistant](https://www.home-assistant.io/) custom card for visualising wind data. The card animates direction, speed and gust values provided by an entity.
 
 ## Features
-- Shows current wind speed and gusts in knots
-- Animated direction arrow
-- Wind rose with N/E/S/W indicators
-- Speed scale markings every 5 kn
-- Radial graph showing speed and gusts
-- Works with an entity that exposes `direction`, `speed` and `gusts` arrays in its `data` attribute
+- Displays current wind speed and gusts in knots
+- Animated direction arrow with radial speed and gust rings
+- Wind rose with N/E/S/W indicators and tick marks
+- Cycles through arrays of `direction`, `speed` and `gusts` exposed in an entity's `data` attribute
 
 ## Installation
 ### With HACS
@@ -36,24 +34,6 @@ type: custom:wind-card
 entity: sensor.my_wind
 ```
 The entity should have a `data` attribute with arrays named `direction`, `speed` and `gusts`. The card cycles through these values once per second.
-
-### Configuration Options
-Additional options allow tweaking the visuals:
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `marker_diameter` | Diameter of the outer marker circle (tick marks) in SVG units | `100` |
-| `graph_diameter`  | Diameter of the radial speed/gust graphs | `70` |
-| `arrow_offset`    | Distance from the card center to the base of the arrow | `40` |
-
-Example usage:
-```yaml
-type: custom:wind-card
-entity: sensor.my_wind
-marker_diameter: 80
-graph_diameter: 60
-arrow_offset: 35
-```
 
 If you see `i.setConfig is not a function`, Home Assistant could not load the script. Ensure the resource URL above is present and refresh the browser.
 

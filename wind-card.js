@@ -172,6 +172,9 @@ class WindCard extends LitElement {
         fill: var(--primary-text-color, #212121);
         font-weight: bold;
       }
+      text {
+        fill: var(--primary-text-color, #212121);
+      }
     `;
   }
 
@@ -237,7 +240,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >5</text>
               <text
                 x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 10 * 6).x}"
@@ -245,7 +248,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >10</text>
               <text
                 x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 15 * 6).x}"
@@ -253,7 +256,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >15</text>
               <text
                 x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 20 * 6).x}"
@@ -261,7 +264,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >20</text>
               <text
                 x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 25 * 6).x}"
@@ -269,7 +272,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >25</text>
               <text
                 x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 30 * 6).x}"
@@ -277,7 +280,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >30</text>
               <text
                 x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 35 * 6).x}"
@@ -285,7 +288,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >35</text>
               <text
                 x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 40 * 6).x}"
@@ -293,7 +296,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >40</text>
               <text
                 x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 45 * 6).x}"
@@ -301,7 +304,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >45</text>
               <text
                 x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 50 * 6).x}"
@@ -309,7 +312,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >50</text>
               <text
                 x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 55 * 6).x}"
@@ -317,7 +320,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >55</text>
               <text
                 x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 60 * 6).x}"
@@ -325,7 +328,7 @@ class WindCard extends LitElement {
                 font-size="4"
                 text-anchor="middle"
                 dominant-baseline="middle"
-                fill="var(--primary-text-color, #212121);"
+                
               >60</text>
             </g>
 

@@ -9,6 +9,7 @@ class WindCard extends LitElement {
       windSpeed: { type: Number },
       gust: { type: Number },
       direction: { type: Number },
+      size: { type: Number },
       _timeline: { type: Array },
       _timelineIndex: { type: Number }
     };
@@ -21,6 +22,7 @@ class WindCard extends LitElement {
     this.windSpeed = 0;
     this.gust = 0;
     this.direction = 0;
+    this.size = 200;
     this._timeline = [];
     this._timelineIndex = 0;
   }
@@ -40,6 +42,7 @@ class WindCard extends LitElement {
       throw new Error('Entity is required');
     }
     this.config = config;
+    this.size = Number(config.size || 200);
   }
 
   set hass(hass) {
@@ -115,8 +118,6 @@ class WindCard extends LitElement {
       }
       .container {
         position: relative;
-        width: 200px;
-        height: 200px;
         margin: auto;
       }
       svg {
@@ -164,7 +165,8 @@ class WindCard extends LitElement {
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
 
     return html`
-      <div class="container">
+      <ha-card>
+      <div class="container" style="width:${this.size}px; height:${this.size}px;">
         <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
           <circle
             cx="50"
@@ -210,6 +212,7 @@ class WindCard extends LitElement {
           <div class="gust">${this.gust.toFixed(1)} kn</div>
         </div>
       </div>
+      </ha-card>
     `;
   }
 }

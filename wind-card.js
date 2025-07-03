@@ -85,7 +85,6 @@ class WindCard extends LitElement {
       this.windSpeed = frame.wind ?? this.windSpeed;
       this.gust = frame.gust ?? this.gust;
       this.direction = frame.direction ?? this.direction;
-      console.log('Direction:', this.direction);
     }
     this._timelineIndex = (this._timelineIndex + 1) % this._timeline.length;
   }
@@ -229,6 +228,7 @@ class WindCard extends LitElement {
               <path stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50 97 l 9 -15 l -9 3 l -9 -3 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(180 50 90)"></path>
             </g>
           </g>
+        
         </svg>
         <div class="info">
           <div class="direction">${dirText}</div>

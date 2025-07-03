@@ -199,10 +199,10 @@ class WindCard extends LitElement {
             ></circle>
 
             <g class="ring">
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - radius + 6}" font-size="11">N</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + radius - 6}" y="50" font-size="11">E</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + radius - 6}" font-size="11">S</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - radius + 6}" y="50" font-size="11">W</text>              
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - radius + 12}" font-size="11">N</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + radius - 12}" y="50" font-size="11">E</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + radius - 12}" font-size="11">S</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - radius + 12}" y="50" font-size="11">W</text>              
               <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
               <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
             </g>
@@ -309,7 +309,7 @@ class WindCard extends LitElement {
 
             <g class="indicators">
               <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"
-                d="M 50,86 55,88.91525 50,76.288132 45,88.91525 Z"
+                d="m 50,${radius + 46} l 5,3 l -5,-12 l -5,12 z"
                 fill="rgb(68,115,158)" stroke-width="0"
                 transform="rotate(${this.direction + 180},50,50)">
               </path>

@@ -191,7 +191,7 @@ class WindCard extends LitElement {
             opacity="0.6"
           ></circle>
           <g class="ring">
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="90" font-size="11">S</text>
+            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="89" font-size="11">S</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="12" y="50" font-size="11">W</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="12" font-size="11">N</text>
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="90" y="50" font-size="11">E</text>

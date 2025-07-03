@@ -138,7 +138,7 @@ class WindCard extends LitElement {
         font-size: 24px;
         font-weight: 800;
       }
-      .compass {
+      .marker {
         transition: transform 1s linear;
         -webkit-transition: -webkit-transform 1s linear;
       }
@@ -208,7 +208,7 @@ class WindCard extends LitElement {
           </g>
 
           <g class="indicators">
-            <path class="marker compass" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"
+            <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"
               d="M 50,86 55,88.91525 50,76.288132 45,88.91525 Z"
               fill="rgb(68,115,158)" stroke-width="0"
               transform="rotate(${this.direction + 180},50,50)">

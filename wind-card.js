@@ -199,7 +199,7 @@ class WindCard extends LitElement {
             <path class="compass minor" stroke-width="0.8" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
           </g>
           <g class="indicators">
-              <path class="marker compass" stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50 97 l 9 -15 l -9 3 l -9 -3 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(${this.direction + 180},50,50)"></path>
+              <path class="marker compass" stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50,94 59,96.91525 50,82.288132 41,96.91525 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(${this.direction + 180},50,50)"></path>
           </g>
         
         </svg>

@@ -119,124 +119,6 @@ class WindCard extends LitElement {
     return d.trim();
   }
 
-  _buildUnitLabels(radius, offset) {
-    const pos = (value) =>
-      this._polarToCartesian(50, 50, radius + offset, value * 6);
-
-    const p5 = pos(5);
-    const p10 = pos(10);
-    const p15 = pos(15);
-    const p20 = pos(20);
-    const p25 = pos(25);
-    const p30 = pos(30);
-    const p35 = pos(35);
-    const p40 = pos(40);
-    const p45 = pos(45);
-    const p50 = pos(50);
-    const p55 = pos(55);
-    const p60 = pos(60);
-
-    return html`
-      <g class="unit-labels">
-        <text
-          x="${p5.x}"
-          y="${p5.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >5</text>
-        <text
-          x="${p10.x}"
-          y="${p10.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >10</text>
-        <text
-          x="${p15.x}"
-          y="${p15.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >15</text>
-        <text
-          x="${p20.x}"
-          y="${p20.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >20</text>
-        <text
-          x="${p25.x}"
-          y="${p25.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >25</text>
-        <text
-          x="${p30.x}"
-          y="${p30.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >30</text>
-        <text
-          x="${p35.x}"
-          y="${p35.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >35</text>
-        <text
-          x="${p40.x}"
-          y="${p40.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >40</text>
-        <text
-          x="${p45.x}"
-          y="${p45.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >45</text>
-        <text
-          x="${p50.x}"
-          y="${p50.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >50</text>
-        <text
-          x="${p55.x}"
-          y="${p55.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >55</text>
-        <text
-          x="${p60.x}"
-          y="${p60.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-        >60</text>
-      </g>
-    `;
-  }
 
   static get styles() {
     return css`
@@ -324,7 +206,105 @@ class WindCard extends LitElement {
               <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
             </g>
 
-            ${this._buildUnitLabels(radius, 4)}
+
+            <g class="unit-labels">
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 5 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 5 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >5</text>
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 10 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 10 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >10</text>
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 15 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 15 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >15</text>
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 20 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 20 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >20</text>
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 25 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 25 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >25</text>
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 30 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 30 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >30</text>
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 35 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 35 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >35</text>
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 40 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 40 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >40</text>
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 45 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 45 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >45</text>
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 50 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 50 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >50</text>
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 55 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 55 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >55</text>
+              <text
+                x="${this._polarToCartesian(50, 50, radius + 4, 60 * 6).x}"
+                y="${this._polarToCartesian(50, 50, radius + 4, 60 * 6).y}"
+                font-size="4"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                fill="black"
+              >60</text>
+            </g>
 
             <g class="indicators">
               <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"

@@ -124,23 +124,19 @@ class WindCard extends LitElement {
         width: 100%;
         height: 100%;
       }
-      .info {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        text-align: center;
+      .info text {
+        fill: var(--primary-text-color, #212121);
         font-family: var(--ha-card-font-family, var(--paper-font-body1_-_font-family));
-        color: var(--primary-text-color, #212121);
+        text-anchor: middle;
+        dominant-baseline: central;
       }
       .info .direction,
       .info .gust {
-        font-size: 0.75em;
+        font-size: 10px;
       }
       .info .speed {
-        font-size: 3.5em;
+        font-size: 20px;
         font-weight: 800;
-        line-height: 1;
       }
       .compass {
         transition: transform 1s linear;
@@ -204,13 +200,13 @@ class WindCard extends LitElement {
           <g class="indicators">
               <path class="marker compass" stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50,94 59,96.91525 50,82.288132 41,96.91525 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(${this.direction + 180},50,50)"></path>
           </g>
-        
+          <g class="info">
+            <text class="direction" x="50" y="30" text-anchor="middle" alignment-baseline="central">${dirText}</text>
+            <text class="speed" x="50" y="50" text-anchor="middle" alignment-baseline="central">${this.windSpeed.toFixed(1)}</text>
+            <text class="gust" x="50" y="70" text-anchor="middle" alignment-baseline="central">${this.gust.toFixed(1)} kn</text>
+          </g>
+
         </svg>
-        <div class="info">
-          <div class="direction">${dirText}</div>
-          <div class="speed">${this.windSpeed.toFixed(1)}</div>
-          <div class="gust">${this.gust.toFixed(1)} kn</div>
-        </div>
       </div>
       </ha-card>
     `;

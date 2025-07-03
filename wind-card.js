@@ -1,4 +1,3 @@
-// Wind card custom element testing
 import { LitElement, html, css } from 'https://unpkg.com/lit-element/lit-element.js?module';
 
 class WindCard extends LitElement {
@@ -38,9 +37,7 @@ class WindCard extends LitElement {
   }
 
   setConfig(config) {
-    if (!config.entity) {
-      throw new Error('Entity is required');
-    }
+    if (!config.entity) throw new Error('Entity is required');
     this.config = config;
     this.size = Number(config.size || 200);
   }
@@ -52,6 +49,16 @@ class WindCard extends LitElement {
 
   get hass() {
     return this._hass;
+  }
+
+  firstUpdated() {
+    // Force SVG <text> rendering
+    setTimeout(() => {
+      const labels = this.renderRoot.querySelectorAll('.unit-labels text');
+      labels.forEach(el => {
+        el.textContent = el.textContent; // Force re-render
+      });
+    }, 0);
   }
 
   _updateFromEntity() {
@@ -110,28 +117,27 @@ class WindCard extends LitElement {
     }
     return d.trim();
   }
+
   _buildUnitLabels(radius, offset) {
-    const labels = [];
-    for (let i = 1; i <= 12; i++) {
-      const value = i * 5;
-      const angle = value * 6;
-      const pos = this._polarToCartesian(50, 50, radius + offset, angle);
-      labels.push(html`
-        <text
-          x="${pos.x}"
-          y="${pos.y}"
-          font-size="4"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          fill="black"
-          .textContent="${value}"
-        ></text>
-      `);
-    }
-    return html`${labels}`;
+    return html`
+      ${Array.from({ length: 12 }, (_, i) => {
+        const value = (i + 1) * 5;
+        const angle = value * 6;
+        const pos = this._polarToCartesian(50, 50, radius + offset, angle);
+        return html`
+          <text
+            x="${pos.x}"
+            y="${pos.y}"
+            font-size="4"
+            text-anchor="middle"
+            dominant-baseline="middle"
+            fill="black"
+            .textContent="${value}"
+          ></text>
+        `;
+      })}
+    `;
   }
-
-
 
   static get styles() {
     return css`
@@ -162,9 +168,9 @@ class WindCard extends LitElement {
       }
       .marker {
         transition: transform 1s linear;
-        -webkit-transition: -webkit-transform 1s linear;
       }
-      .ring text {
+      .ring text,
+      .unit-labels text {
         fill: var(--primary-text-color, #212121);
         font-weight: bold;
       }
@@ -175,7 +181,6 @@ class WindCard extends LitElement {
     const dirText = this._directionToText(this.direction);
     const majorPath = this._buildTickPath(42, 3.5, 30, [0, 90, 180, 270]);
     const minorPath = this._buildTickPath(42, 1.5, 5, [355, 0, 5, 85, 90, 95, 175, 180, 185, 265, 270, 275]);
-
     const maxSpeed = 60;
     const radius = 44;
     const circumference = 2 * Math.PI * radius;
@@ -184,59 +189,39 @@ class WindCard extends LitElement {
 
     return html`
       <ha-card>
-      <div class="container" style="width:${this.size}px; height:${this.size}px;">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
-          <circle
-            cx="50"
-            cy="50"
-            r="${radius}"
-            fill="none"
-            stroke="var(--primary-text-color, #212121)"
-            stroke-width="2"
-            stroke-dasharray="${circumference}"
-            stroke-dashoffset="${speedOffset}"
-            style="transition: stroke-dashoffset 1s linear;"
-            transform="rotate(-90 50 50)"
-          ></circle>
-          <circle
-            cx="50"
-            cy="50"
-            r="${radius}"
-            fill="none"
-            stroke="var(--primary-text-color, #212121)"
-            stroke-width="2"
-            stroke-dasharray="${circumference}"
-            stroke-dashoffset="${gustOffset}"
-            style="transition: stroke-dashoffset 1s linear;"
-            transform="rotate(-90 50 50)"
-            opacity="0.4"
-          ></circle>
+        <div class="container" style="width:${this.size}px; height:${this.size}px;">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
+            <circle cx="50" cy="50" r="${radius}" fill="none" stroke="var(--primary-text-color, #212121)" stroke-width="2" stroke-dasharray="${circumference}" stroke-dashoffset="${speedOffset}" style="transition: stroke-dashoffset 1s linear;" transform="rotate(-90 50 50)"></circle>
+            <circle cx="50" cy="50" r="${radius}" fill="none" stroke="var(--primary-text-color, #212121)" stroke-width="2" stroke-dasharray="${circumference}" stroke-dashoffset="${gustOffset}" style="transition: stroke-dashoffset 1s linear;" transform="rotate(-90 50 50)" opacity="0.4"></circle>
 
-          <g class="ring">
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="89" font-size="11">S</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="12" y="50" font-size="11">W</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="12" font-size="11">N</text>
-            <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="90" y="50" font-size="11">E</text>
-            <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
-            <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
-          </g>
+            <g class="ring">
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="89" font-size="11">S</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="12" y="50" font-size="11">W</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="12" font-size="11">N</text>
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="90" y="50" font-size="11">E</text>
+              <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
+              <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
+            </g>
 
-          <g class="indicators">
-            <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"
-              d="M 50,86 55,88.91525 50,76.288132 45,88.91525 Z"
-              fill="rgb(68,115,158)" stroke-width="0"
-              transform="rotate(${this.direction + 180},50,50)">
-            </path>
-          </g>
-          <g class="unit-labels"> ${this._buildUnitLabels(radius, 4)} </g> 
-          <g class="info">
-            <text class="direction" x="50" y="34">${dirText}</text>
-            <text class="speed" x="50" y="50">${this.windSpeed.toFixed(1)}</text>
-            <text class="gust" x="50" y="66">${this.gust.toFixed(1)} kn</text>
-          </g>
+            <g class="unit-labels">
+              ${this._buildUnitLabels(radius, 4)}
+            </g>
 
-        </svg>
-      </div>
+            <g class="indicators">
+              <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"
+                d="M 50,86 55,88.91525 50,76.288132 45,88.91525 Z"
+                fill="rgb(68,115,158)" stroke-width="0"
+                transform="rotate(${this.direction + 180},50,50)">
+              </path>
+            </g>
+
+            <g class="info">
+              <text class="direction" x="50" y="34">${dirText}</text>
+              <text class="speed" x="50" y="50">${this.windSpeed.toFixed(1)}</text>
+              <text class="gust" x="50" y="66">${this.gust.toFixed(1)} kn</text>
+            </g>
+          </svg>
+        </div>
       </ha-card>
     `;
   }

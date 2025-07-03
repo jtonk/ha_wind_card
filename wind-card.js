@@ -117,13 +117,21 @@ class WindCard extends LitElement {
       const angle = value * 6;
       const pos = this._polarToCartesian(50, 50, radius + offset, angle);
       labels.push(html`
-        <text x="${pos.x}" y="${pos.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">
-          ${value}
+        <text
+          x="${pos.x}"
+          y="${pos.y}"
+          font-size="4"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          fill="black"
+        >
+          ${String(value)}
         </text>
       `);
     }
     return html`${labels}`;
   }
+
 
   static get styles() {
     return css`

@@ -132,10 +132,10 @@ class WindCard extends LitElement {
       }
       .info .direction,
       .info .gust {
-        font-size: 10px;
+        font-size: 8px;
       }
       .info .speed {
-        font-size: 20px;
+        font-size: 24px;
         font-weight: 800;
       }
       .compass {
@@ -201,9 +201,9 @@ class WindCard extends LitElement {
               <path class="marker compass" stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="M 50,94 59,96.91525 50,82.288132 41,96.91525 Z" fill="rgb(68,115,158)" stroke-width="0" transform="rotate(${this.direction + 180},50,50)"></path>
           </g>
           <g class="info">
-            <text class="direction" x="50" y="30" text-anchor="middle" alignment-baseline="central">${dirText}</text>
+            <text class="direction" x="50" y="34" text-anchor="middle" alignment-baseline="central">${dirText}</text>
             <text class="speed" x="50" y="50" text-anchor="middle" alignment-baseline="central">${this.windSpeed.toFixed(1)}</text>
-            <text class="gust" x="50" y="70" text-anchor="middle" alignment-baseline="central">${this.gust.toFixed(1)} kn</text>
+            <text class="gust" x="50" y="66" text-anchor="middle" alignment-baseline="central">${this.gust.toFixed(1)} kn</text>
           </g>
 
         </svg>

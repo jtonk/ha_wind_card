@@ -216,8 +216,8 @@ class WindCard extends LitElement {
         </svg>
         <div class="info">
           <div class="direction">${dirText}</div>
-          <div class="speed">${this.windSpeed.toFixed(0)}</div>
-          <div class="gust">${this.gust.toFixed(0)} kn</div>
+          <div class="speed">${this.windSpeed.toFixed(1)}</div>
+          <div class="gust">${this.gust.toFixed(1)} kn</div>
         </div>
       </div>
     `;

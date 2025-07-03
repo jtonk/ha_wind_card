@@ -9,9 +9,6 @@ class WindCard extends LitElement {
       windSpeed: { type: Number },
       gust: { type: Number },
       direction: { type: Number },
-      cardinal: { type: String },
-      dateTime: { type: String },
-      isLive: { type: Boolean },
       _timeline: { type: Array },
       _timelineIndex: { type: Number }
     };
@@ -24,9 +21,6 @@ class WindCard extends LitElement {
     this.windSpeed = 0;
     this.gust = 0;
     this.direction = 0;
-    this.cardinal = '';
-    this.dateTime = '';
-    this.isLive = false;
     this._timeline = [];
     this._timelineIndex = 0;
   }
@@ -65,7 +59,6 @@ class WindCard extends LitElement {
     const dirs = Array.isArray(data.direction) ? data.direction : [];
     const speeds = Array.isArray(data.speed) ? data.speed : [];
     const gusts = Array.isArray(data.gusts) ? data.gusts : [];
-    const cardinals = Array.isArray(data.cardinal) ? data.cardinal : [];
     const len = Math.min(dirs.length, speeds.length, gusts.length);
     this._timeline = [];
     for (let i = 0; i < len; i++) {
@@ -148,12 +141,6 @@ class WindCard extends LitElement {
         font-weight: 800;
         line-height: 1;
       }
-      .date {
-        position: absolute;
-        bottom: 4px;
-        right: 4px;
-        font-size: 0.7em;
-      }
       .compass {
         transition: transform 1s linear;
         -webkit-transition: -webkit-transform 1s linear;
@@ -235,7 +222,6 @@ class WindCard extends LitElement {
           <div class="speed">${this.windSpeed.toFixed(1)}</div>
           <div class="gust">${this.gust.toFixed(1)} kn</div>
         </div>
-        <div class="date">${this.dateTime} ${this.isLive ? '(live)' : ''}</div>
       </div>
     `;
   }

@@ -219,8 +219,6 @@ class WindCard extends LitElement {
             <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="90" y="50" font-size="11">E</text>
             <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
             <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
-            
-            ${this._buildUnitLabels(radius, 4)}
           </g>
 
           <g class="indicators">
@@ -230,7 +228,7 @@ class WindCard extends LitElement {
               transform="rotate(${this.direction + 180},50,50)">
             </path>
           </g>
-
+          <g class="unit-labels"> ${this._buildUnitLabels(radius, 4)} </g> 
           <g class="info">
             <text class="direction" x="50" y="34">${dirText}</text>
             <text class="speed" x="50" y="50">${this.windSpeed.toFixed(1)}</text>

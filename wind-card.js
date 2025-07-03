@@ -198,18 +198,18 @@ class WindCard extends LitElement {
             <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
             <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
             
-            <text x="50" y="5" font-size="4" text-anchor="middle" dominant-baseline="middle">5</text>
-            <text x="61.2" y="7.5" font-size="4" text-anchor="middle" dominant-baseline="middle">10</text>
-            <text x="70.6" y="13.8" font-size="4" text-anchor="middle" dominant-baseline="middle">15</text>
-            <text x="78" y="22.5" font-size="4" text-anchor="middle" dominant-baseline="middle">20</text>
-            <text x="83" y="33.3" font-size="4" text-anchor="middle" dominant-baseline="middle">25</text>
-            <text x="85.3" y="45.4" font-size="4" text-anchor="middle" dominant-baseline="middle">30</text>
-            <text x="83" y="57.4" font-size="4" text-anchor="middle" dominant-baseline="middle">35</text>
-            <text x="78" y="68.2" font-size="4" text-anchor="middle" dominant-baseline="middle">40</text>
-            <text x="70.6" y="76.9" font-size="4" text-anchor="middle" dominant-baseline="middle">45</text>
-            <text x="61.2" y="83.2" font-size="4" text-anchor="middle" dominant-baseline="middle">50</text>
-            <text x="50" y="85.9" font-size="4" text-anchor="middle" dominant-baseline="middle">55</text>
-            <text x="38.8" y="83.2" font-size="4" text-anchor="middle" dominant-baseline="middle">60</text>
+            <text x="73" y="25" font-size="4" text-anchor="middle" dominant-baseline="middle">5</text>
+            <text x="75.8" y="37.1" font-size="4" text-anchor="middle" dominant-baseline="middle">10</text>
+            <text x="73" y="49" font-size="4" text-anchor="middle" dominant-baseline="middle">15</text>
+            <text x="66" y="60" font-size="4" text-anchor="middle" dominant-baseline="middle">20</text>
+            <text x="56" y="68" font-size="4" text-anchor="middle" dominant-baseline="middle">25</text>
+            <text x="44" y="68" font-size="4" text-anchor="middle" dominant-baseline="middle">30</text>
+            <text x="34" y="60" font-size="4" text-anchor="middle" dominant-baseline="middle">35</text>
+            <text x="27" y="49" font-size="4" text-anchor="middle" dominant-baseline="middle">40</text>
+            <text x="24" y="37.1" font-size="4" text-anchor="middle" dominant-baseline="middle">45</text>
+            <text x="27" y="25" font-size="4" text-anchor="middle" dominant-baseline="middle">50</text>
+            <text x="34" y="14" font-size="4" text-anchor="middle" dominant-baseline="middle">55</text>
+            <text x="44" y="6" font-size="4" text-anchor="middle" dominant-baseline="middle">60</text>
           </g>
 
           <g class="indicators">

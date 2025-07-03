@@ -37,6 +37,3 @@ size: 250
 The optional `size` parameter controls the width and height of the SVG in pixels.
 If omitted the default size is 200.
 The entity should have a `data` attribute with arrays named `direction`, `speed` and `gusts`. The card cycles through these values once per second.
-
-If you see `i.setConfig is not a function`, Home Assistant could not load the script. Ensure the resource URL above is present and refresh the browser.
-

@@ -33,7 +33,9 @@ Add a card of type `custom:wind-card` and point it to an entity containing wind 
 type: custom:wind-card
 entity: sensor.my_wind
 size: 250
+radius: 40
+cardinal_offset: 4
+radius_tickPath: 38
 ```
-The optional `size` parameter controls the width and height of the SVG in pixels.
-If omitted the default size is 200.
+The optional parameters `size`, `radius`, `cardinal_offset` and `radius_tickPath` control the dimensions of the compass. If omitted their defaults are 200, 40, 4 and 38 respectively.
 The entity should have a `data` attribute with arrays named `direction`, `speed` and `gusts`. The card cycles through these values once per second.

@@ -201,27 +201,28 @@ class WindCard extends LitElement {
               cy="50"
               r="${radius}"
               fill="none"
-              stroke="var(--primary-text-color, #212121)"
+              stroke="var(--light-primary-color)"
               stroke-width="${this.gauge_width}"
               stroke-dasharray="${circumference}"
-              stroke-dashoffset="${speedOffset}"
+              stroke-dashoffset="${gustOffset}"
               style="transition: stroke-dashoffset 1s linear;"
               transform="rotate(-90 50 50)"
-              opacity="0.7"
+              opacity="1"
             ></circle>
             <circle
               cx="50"
               cy="50"
               r="${radius}"
               fill="none"
-              stroke="var(--primary-text-color, #212121)"
+              stroke="var(--primary-color)"
               stroke-width="${this.gauge_width}"
               stroke-dasharray="${circumference}"
-              stroke-dashoffset="${gustOffset}"
+              stroke-dashoffset="${speedOffset}"
               style="transition: stroke-dashoffset 1s linear;"
               transform="rotate(-90 50 50)"
-              opacity="0.3"
+              opacity="1"
             ></circle>
+
 
             <g class="ring">
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - tickPath_radius + cardinal_offset}" font-size="11">N</text>

@@ -336,7 +336,7 @@ class WindCard extends LitElement {
             <g class="indicators">
               <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"
                 d="m 50,${tickPath_radius + 46} l 5,3 l -5,-12 l -5,12 z"
-                fill="rgb(68,115,158)" stroke-width="0"
+                fill="var(--primary-color)" stroke-width="0"
                 transform="rotate(${this.direction + 180},50,50)">
               </path>
             </g>

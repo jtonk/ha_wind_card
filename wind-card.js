@@ -167,6 +167,8 @@ class WindCard extends LitElement {
       }
       .marker {
         transition: transform 1s linear;
+        transform-origin: 50% 50%;
+        transform-box: view-box;
       }
       .ring text {
         fill: var(--primary-text-color, #212121);
@@ -337,7 +339,7 @@ class WindCard extends LitElement {
               <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"
                 d="m 50,${tickPath_radius + 46} l 5,3 l -5,-12 l -5,12 z"
                 fill="var(--primary-color)" stroke-width="0"
-                transform="rotate(${this.direction + 180},50,50)">
+                style="transform: rotate(${this.direction + 180}deg);">
               </path>
             </g>
 

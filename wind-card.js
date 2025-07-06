@@ -166,7 +166,7 @@ class WindCard extends LitElement {
         font-weight: 800;
       }
       .marker {
-        transition: transform 1s linear;
+        transition: transform 1s ease-in-out;
         transform-origin: 50% 50%;
         transform-box: view-box;
       }
@@ -207,7 +207,7 @@ class WindCard extends LitElement {
               stroke-width="${this.gauge_width}"
               stroke-dasharray="${circumference}"
               stroke-dashoffset="${gustOffset}"
-              style="transition: stroke-dashoffset 1s linear;"
+              style="transition: stroke-dashoffset 1s ease-in-out;"
               transform="rotate(-90 50 50)"
               opacity="1"
             ></circle>
@@ -220,7 +220,7 @@ class WindCard extends LitElement {
               stroke-width="${this.gauge_width}"
               stroke-dasharray="${circumference}"
               stroke-dashoffset="${speedOffset}"
-              style="transition: stroke-dashoffset 1s linear;"
+              style="transition: stroke-dashoffset 1s ease-in-out;"
               transform="rotate(-90 50 50)"
               opacity="1"
             ></circle>

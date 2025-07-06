@@ -7,6 +7,7 @@ Wind Card is a [Home Assistant](https://www.home-assistant.io/) custom card for 
 - Animated direction arrow with radial speed and gust rings
 - Wind rose with N/E/S/W indicators and tick marks
 - Cycles through arrays of `direction`, `speed` and `gusts` exposed in an entity's `data` attribute
+- Configurable time span (default 10 minutes) that uses 1&nbsp;minute averaged values
 
 ## Installation
 ### With HACS
@@ -39,6 +40,7 @@ cardinal_offset: 4
 tickPath_radius: 38
 tickPath_width: 4
 units_offset: 4
+timespan: 10
 ```
-The optional parameters `size`, `gauge_radius`, `gauge_width`, `cardinal_offset`, `tickPath_radius`, `tickPath_width` and `units_offset` control the dimensions of the compass. If omitted their defaults are 200, 40, 2, 4, 38, 4 and 4 respectively.
-The entity should have a `data` attribute with arrays named `direction`, `speed` and `gusts`. The card cycles through these values once per second.
+The optional parameters `size`, `gauge_radius`, `gauge_width`, `cardinal_offset`, `tickPath_radius`, `tickPath_width`, `units_offset` and `timespan` control the dimensions of the compass and the length of the timeline. `timespan` is the number of minutes shown and defaults to `10`.
+The entity should have a `data` attribute with arrays named `direction`, `speed` and `gusts`. Values are averaged in one‑minute blocks and the card cycles through these averages once per second.

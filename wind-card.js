@@ -15,6 +15,7 @@ class WindCard extends LitElement {
       tickPath_radius: { type: Number },
       tickPath_width: { type: Number },
       units_offset: { type: Number },
+      timespan: { type: Number },
       _timeline: { type: Array },
       _timelineIndex: { type: Number }
     };
@@ -34,6 +35,7 @@ class WindCard extends LitElement {
     this.tickPath_radius = 38;
     this.tickPath_width = 4;
     this.units_offset = 4;
+    this.timespan = 10;
     this._timeline = [];
     this._timelineIndex = 0;
   }
@@ -58,6 +60,7 @@ class WindCard extends LitElement {
     this.tickPath_radius = Number(config.tickPath_radius || 38);
     this.tickPath_width = Number(config.tickPath_width || 4);
     this.units_offset = Number(config.units_offset || 4);
+    this.timespan = Number(config.timespan || 10);
   }
 
   set hass(hass) {
@@ -90,11 +93,27 @@ class WindCard extends LitElement {
     const gusts = Array.isArray(data.gusts) ? data.gusts : [];
     const len = Math.min(dirs.length, speeds.length, gusts.length);
     this._timeline = [];
-    for (let i = 0; i < len; i++) {
-      this._timeline.push({
-        direction: Number(dirs[i]),
-        wind: Number(speeds[i]),
-        gust: Number(gusts[i]),
+
+    const minutes = Math.min(this.timespan, Math.floor(len / 60));
+    for (let m = 0; m < minutes; m++) {
+      const start = len - (m + 1) * 60;
+      if (start < 0) break;
+      const end = len - m * 60;
+      const sliceLen = end - start;
+      const avg = (arr) => arr.slice(start, end).reduce((s, v) => s + Number(v), 0) / sliceLen;
+      const angleAvg = (arr) => {
+        let sin = 0, cos = 0;
+        arr.slice(start, end).forEach(v => {
+          const rad = Number(v) * Math.PI / 180;
+          sin += Math.sin(rad);
+          cos += Math.cos(rad);
+        });
+        return (Math.atan2(sin / sliceLen, cos / sliceLen) * 180 / Math.PI + 360) % 360;
+      };
+      this._timeline.unshift({
+        direction: angleAvg(dirs),
+        wind: avg(speeds),
+        gust: avg(gusts),
       });
     }
     this._timelineIndex = 0;

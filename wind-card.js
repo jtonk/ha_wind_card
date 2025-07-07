@@ -106,9 +106,17 @@ class WindCard extends LitElement {
     if (frame) {
       this.windSpeed = frame.wind ?? this.windSpeed;
       this.gust = frame.gust ?? this.gust;
-      this.direction = frame.direction ?? this.direction;
+      if (typeof frame.direction === 'number') {
+        this.direction = this._shortestAngle(this.direction, frame.direction);
+      }
     }
     this._timelineIndex = (this._timelineIndex + 1) % this._timeline.length;
+  }
+
+  _shortestAngle(current, target) {
+    if (typeof current !== 'number') return target;
+    const diff = ((target - current + 540) % 360) - 180;
+    return current + diff;
   }
 
   _polarToCartesian(cx, cy, r, angleDeg) {
@@ -122,7 +130,8 @@ class WindCard extends LitElement {
   _directionToText(deg) {
     const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
       'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-    const i = Math.round(((deg % 360) / 22.5)) % 16;
+    const norm = ((deg % 360) + 360) % 360;
+    const i = Math.round(norm / 22.5) % 16;
     return dirs[i];
   }
 

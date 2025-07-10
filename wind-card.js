@@ -1,5 +1,15 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element/lit-element.js?module';
 
+// Color scale used for wind and gust speeds.  This mirrors the palette used
+// in the jtonk/ha_wind_stat_card project so the gauge transitions through a
+// spectrum as speeds increase.
+const wsColors = [
+  '#9700ff', '#6400ff', '#3200ff', '#0032ff', '#0064ff', '#0096ff', '#00c7ff',
+  '#00e6f0', '#25c192', '#11d411', '#00e600', '#00fa00', '#b8ff61', '#fffe00',
+  '#ffe100', '#ffc800', '#ffaf00', '#ff9600', '#e67d00', '#e66400', '#dc4a1d',
+  '#c8321d', '#b4191d', '#aa001d', '#b40032', '#c80064', '#fe0096'
+];
+
 class WindCard extends LitElement {
   static get properties() {
     return {
@@ -146,6 +156,23 @@ class WindCard extends LitElement {
     return d.trim();
   }
 
+  _speedToColor(speed) {
+    const idx = Math.min(wsColors.length - 1, Math.max(0, Math.floor(speed / 2)));
+    return wsColors[idx];
+  }
+
+  _addAlpha(hex, alpha) {
+    let c = hex.replace('#', '');
+    if (c.length === 3) {
+      c = c.split('').map(ch => ch + ch).join('');
+    }
+    const num = parseInt(c, 16);
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
 
   static get styles() {
     return css`
@@ -175,7 +202,7 @@ class WindCard extends LitElement {
         font-weight: 800;
       }
       .marker {
-        transition: transform 1s ease-in-out;
+        transition: transform 1s ease-in-out, fill 1s ease-in-out;
         transform-origin: 50% 50%;
         transform-box: view-box;
       }
@@ -202,6 +229,8 @@ class WindCard extends LitElement {
     const circumference = 2 * Math.PI * radius;
     const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
+    const windColor = this._speedToColor(this.windSpeed);
+    const gustColor = this._addAlpha(this._speedToColor(this.gust), 0.5);
 
     return html`
       <ha-card>
@@ -212,11 +241,11 @@ class WindCard extends LitElement {
               cy="50"
               r="${radius}"
               fill="none"
-              stroke="var(--light-primary-color)"
+              stroke="${gustColor}"
               stroke-width="${this.gauge_width}"
               stroke-dasharray="${circumference}"
               stroke-dashoffset="${gustOffset}"
-              style="transition: stroke-dashoffset 1s ease-in-out;"
+              style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;"
               transform="rotate(-90 50 50)"
               opacity="1"
             ></circle>
@@ -225,11 +254,11 @@ class WindCard extends LitElement {
               cy="50"
               r="${radius}"
               fill="none"
-              stroke="var(--primary-color)"
+              stroke="${windColor}"
               stroke-width="${this.gauge_width}"
               stroke-dasharray="${circumference}"
               stroke-dashoffset="${speedOffset}"
-              style="transition: stroke-dashoffset 1s ease-in-out;"
+              style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;"
               transform="rotate(-90 50 50)"
               opacity="1"
             ></circle>
@@ -347,15 +376,15 @@ class WindCard extends LitElement {
             <g class="indicators">
               <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel"
                 d="m 50,${tickPath_radius + 46} l 5,3 l -5,-12 l -5,12 z"
-                fill="var(--primary-color)" stroke-width="0"
+                fill="${windColor}" stroke-width="0"
                 style="transform: rotate(${this.direction + 180}deg);">
               </path>
             </g>
 
             <g class="info">
               <text class="direction" x="50" y="34">${dirText}</text>
-              <text class="speed" x="50" y="50">${this.windSpeed.toFixed(1)}</text>
-              <text class="gust" x="50" y="66">${this.gust.toFixed(1)} kn</text>
+              <text class="speed" x="50" y="50" fill="${windColor}">${this.windSpeed.toFixed(1)}</text>
+              <text class="gust" x="50" y="66" fill="${gustColor}">${this.gust.toFixed(1)} kn</text>
             </g>
           </svg>
         </div>

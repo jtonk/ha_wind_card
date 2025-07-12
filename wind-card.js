@@ -58,6 +58,16 @@ class WindCard extends LitElement {
     clearInterval(this._animInterval);
   }
 
+  firstUpdated(changedProps) {
+    super.firstUpdated?.(changedProps);
+    const ticks = this.renderRoot.querySelector('.ticks');
+    const numbers = this.renderRoot.querySelector('.unit-labels');
+    const cardinals = this.renderRoot.querySelector('.cardinals');
+    ticks?.classList.add('animate-ticks');
+    numbers?.classList.add('animate-numbers');
+    cardinals?.classList.add('animate-cardinals');
+  }
+
   setConfig(config) {
     if (!config.entity) throw new Error('Entity is required');
     this.config = config;
@@ -213,6 +223,18 @@ class WindCard extends LitElement {
       text {
         fill: var(--primary-text-color, #212121);
       }
+      .ticks,
+      .unit-labels,
+      .cardinals {
+        opacity: 0;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .animate-ticks { animation: fadeIn 0.5s ease-in-out forwards; }
+      .animate-numbers { animation: fadeIn 0.5s ease-in-out 0.5s forwards; }
+      .animate-cardinals { animation: fadeIn 0.5s ease-in-out 1s forwards; }
     `;
   }
 
@@ -265,12 +287,16 @@ class WindCard extends LitElement {
 
 
             <g class="ring">
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - tickPath_radius + cardinal_offset}" font-size="11">N</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + tickPath_radius - cardinal_offset}" y="50" font-size="11">E</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + tickPath_radius - cardinal_offset}" font-size="11">S</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - tickPath_radius + cardinal_offset}" y="50" font-size="11">W</text>              
-              <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
-              <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
+              <g class="ticks">
+                <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
+                <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
+              </g>
+              <g class="cardinals">
+                <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - tickPath_radius + cardinal_offset}" font-size="11">N</text>
+                <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + tickPath_radius - cardinal_offset}" y="50" font-size="11">E</text>
+                <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + tickPath_radius - cardinal_offset}" font-size="11">S</text>
+                <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - tickPath_radius + cardinal_offset}" y="50" font-size="11">W</text>
+              </g>
             </g>
 
 

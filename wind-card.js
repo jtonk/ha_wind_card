@@ -351,6 +351,11 @@ class WindCard extends LitElement {
     this._animateFromTimeline();
   }
 
+  _onBarDown(e, data) {
+    e.preventDefault();
+    this._onBarEnter(data);
+  }
+
   _renderBar({ wind, gust, direction }) {
     const auto = this.autoscale;
     const scale = this._maxGust || 1;
@@ -363,7 +368,9 @@ class WindCard extends LitElement {
     const colorGust = this._getColor(gust);
     return html`
       <div class="wind-bar-segment"
+           @pointerdown=${(e) => this._onBarDown(e, { wind, gust, direction })}
            @pointerenter=${() => this._onBarEnter({ wind, gust, direction })}
+           @pointermove=${() => this._onBarEnter({ wind, gust, direction })}
            @pointerleave=${() => this._onBarLeave()}>
         <div class="bar-wrapper">
           <div class="bar-container">

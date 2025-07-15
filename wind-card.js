@@ -29,7 +29,8 @@ class WindCard extends LitElement {
     _data: { state: true },
     _maxGust: { state: true },
     _lastUpdated: { state: true },
-    _noData: { state: true }
+    _noData: { state: true },
+    show_graph: { type: Boolean }
   };
 
   constructor() {
@@ -54,6 +55,8 @@ class WindCard extends LitElement {
     this._lastUpdated = null;
     this._noData = false;
     this._initialLoad = true;
+    this.show_graph = true;
+    this._hoverData = null;
   }
 
   setConfig(config) {
@@ -76,6 +79,7 @@ class WindCard extends LitElement {
     this.graph_height = Number(config.graph_height || 100);
     this.autoscale = config.autoscale !== false;
     this.multiplier = 'multiplier' in config ? Number(config.multiplier) : 1;
+    this.show_graph = config.show_graph !== false;
   }
 
   set hass(hass) {
@@ -90,7 +94,9 @@ class WindCard extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._animInterval = setInterval(() => this._animateFromTimeline(), 1000);
-    this._scheduleNextFetch();
+    if (this.show_graph) {
+      this._scheduleNextFetch();
+    }
   }
 
   disconnectedCallback() {
@@ -130,6 +136,15 @@ class WindCard extends LitElement {
   }
 
   _animateFromTimeline() {
+    if (this._hoverData) {
+      const frame = this._hoverData;
+      this.windSpeed = frame.wind ?? this.windSpeed;
+      this.gust = frame.gust ?? this.gust;
+      if (typeof frame.direction === 'number') {
+        this.direction = frame.direction;
+      }
+      return;
+    }
     if (!this._timeline || this._timeline.length === 0) return;
     const frame = this._timeline[this._timelineIndex];
     if (frame) {
@@ -192,6 +207,7 @@ class WindCard extends LitElement {
   }
 
   _scheduleNextFetch() {
+    if (!this.show_graph) return;
     this._fetchData();
     const now = new Date();
     const ms = 60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
@@ -323,6 +339,18 @@ class WindCard extends LitElement {
     }
   }
 
+  _onBarEnter(data) {
+    this._hoverData = data;
+    this.windSpeed = data.wind;
+    this.gust = data.gust;
+    this.direction = data.direction;
+  }
+
+  _onBarLeave() {
+    this._hoverData = null;
+    this._animateFromTimeline();
+  }
+
   _renderBar({ wind, gust, direction }) {
     const auto = this.autoscale;
     const scale = this._maxGust || 1;
@@ -334,7 +362,9 @@ class WindCard extends LitElement {
     const colorWind = this._getColor(wind);
     const colorGust = this._getColor(gust);
     return html`
-      <div class="wind-bar-segment">
+      <div class="wind-bar-segment"
+           @mouseenter=${() => this._onBarEnter({ wind, gust, direction })}
+           @mouseleave=${() => this._onBarLeave()}>
         <div class="bar-wrapper">
           <div class="bar-container">
             <div class="date-wind-bar-segment" style="background:${colorWind};height:${windHeight}px;width:100%;"></div>
@@ -391,7 +421,7 @@ class WindCard extends LitElement {
             </g>
           </svg>
         </div>
-        ${this._noData ? html`<div class="no-data">${this._error || 'No data available'}</div>` : html`
+        ${this.show_graph ? (this._noData ? html`<div class="no-data">${this._error || 'No data available'}</div>` : html`
           <div class="graph" style="height:${this.graph_height}px">
             <div class="overlay-lines">
               ${(() => {
@@ -406,7 +436,7 @@ class WindCard extends LitElement {
             ${repeat(this._data, (_d, index) => index, d => this._renderBar(d))}
           </div>
           <div class="footer">Updated: ${this._lastUpdated?.toLocaleTimeString()}</div>
-        `}
+        `) : ''}
       </ha-card>
     `;
   }

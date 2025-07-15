@@ -141,7 +141,7 @@ class WindCard extends LitElement {
       this.windSpeed = frame.wind ?? this.windSpeed;
       this.gust = frame.gust ?? this.gust;
       if (typeof frame.direction === 'number') {
-        this.direction = frame.direction;
+        this.direction = this._shortestAngle(this.direction, frame.direction);
       }
       return;
     }
@@ -343,7 +343,7 @@ class WindCard extends LitElement {
     this._hoverData = data;
     this.windSpeed = data.wind;
     this.gust = data.gust;
-    this.direction = data.direction;
+    this.direction = this._shortestAngle(this.direction, data.direction);
   }
 
   _onBarLeave() {

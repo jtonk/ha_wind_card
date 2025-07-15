@@ -8,6 +8,7 @@ Wind Card is a [Home Assistant](https://www.home-assistant.io/) custom card for 
 - Wind rose with N/E/S/W indicators and tick marks
 - Cycles through arrays of `direction`, `speed` and `gusts` exposed in an entity's `data` attribute
 - Hovering over the history bars displays that entry's values on the gauge
+- Touch support to view bar values by sliding across the graph
 
 ## Installation
 ### With HACS

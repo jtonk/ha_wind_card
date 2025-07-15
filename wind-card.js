@@ -363,8 +363,8 @@ class WindCard extends LitElement {
     const colorGust = this._getColor(gust);
     return html`
       <div class="wind-bar-segment"
-           @mouseenter=${() => this._onBarEnter({ wind, gust, direction })}
-           @mouseleave=${() => this._onBarLeave()}>
+           @pointerenter=${() => this._onBarEnter({ wind, gust, direction })}
+           @pointerleave=${() => this._onBarLeave()}>
         <div class="bar-wrapper">
           <div class="bar-container">
             <div class="date-wind-bar-segment" style="background:${colorWind};height:${windHeight}px;width:100%;"></div>
@@ -484,6 +484,7 @@ class WindCard extends LitElement {
       align-items: end;
       gap: 1px;
       position: relative;
+      touch-action: pan-y;
     }
     .overlay-lines {
       position: absolute;

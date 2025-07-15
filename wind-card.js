@@ -1,8 +1,8 @@
-import { LitElement, html, css } from 'https://unpkg.com/lit-element/lit-element.js?module';
+import { LitElement, html, css } from 'https://unpkg.com/lit?module';
+import { repeat } from 'https://unpkg.com/lit/directives/repeat.js?module';
 
-// Color scale used for wind and gust speeds.  This mirrors the palette used
-// in the jtonk/ha_wind_stat_card project so the gauge transitions through a
-// spectrum as speeds increase.
+// Color scale used for wind and gust speeds. This mirrors the palette from
+// ha_wind_stat_card so both the gauge and graph use the same colours.
 const wsColors = [
   '#9700ff', '#6400ff', '#3200ff', '#0032ff', '#0064ff', '#0096ff', '#00c7ff',
   '#00e6f0', '#25c192', '#11d411', '#00e600', '#00fa00', '#b8ff61', '#fffe00',
@@ -11,24 +11,26 @@ const wsColors = [
 ];
 
 class WindCard extends LitElement {
-  static get properties() {
-    return {
-      hass: {},
-      config: {},
-      windSpeed: { type: Number },
-      gust: { type: Number },
-      direction: { type: Number },
-      size: { type: Number },
-      gauge_radius: { type: Number },
-      gauge_width: { type: Number },
-      cardinal_offset: { type: Number },
-      tickPath_radius: { type: Number },
-      tickPath_width: { type: Number },
-      units_offset: { type: Number },
-      _timeline: { type: Array },
-      _timelineIndex: { type: Number }
-    };
-  }
+  static properties = {
+    hass: {},
+    config: {},
+    windSpeed: { type: Number },
+    gust: { type: Number },
+    direction: { type: Number },
+    size: { type: Number },
+    gauge_radius: { type: Number },
+    gauge_width: { type: Number },
+    cardinal_offset: { type: Number },
+    tickPath_radius: { type: Number },
+    tickPath_width: { type: Number },
+    units_offset: { type: Number },
+    _timeline: { type: Array },
+    _timelineIndex: { type: Number },
+    _data: { state: true },
+    _maxGust: { state: true },
+    _lastUpdated: { state: true },
+    _noData: { state: true }
+  };
 
   constructor() {
     super();
@@ -46,20 +48,22 @@ class WindCard extends LitElement {
     this.units_offset = 4;
     this._timeline = [];
     this._timelineIndex = 0;
-  }
 
-  connectedCallback() {
-    super.connectedCallback();
-    this._animInterval = setInterval(() => this._animateFromTimeline(), 1000);
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    clearInterval(this._animInterval);
+    this._data = [];
+    this._maxGust = 0;
+    this._lastUpdated = null;
+    this._noData = false;
+    this._initialLoad = true;
   }
 
   setConfig(config) {
-    if (!config.entity) throw new Error('Entity is required');
+    if (!config.entity) {
+      throw new Error('Entity is required');
+    }
+    if (!config.wind_entity || !config.gust_entity || !config.direction_entity) {
+      this._noData = true;
+      this._error = 'wind_entity, gust_entity and direction_entity must be set';
+    }
     this.config = config;
     this.size = Number(config.size || 200);
     this.gauge_radius = Number(config.gauge_radius || 40);
@@ -68,6 +72,10 @@ class WindCard extends LitElement {
     this.tickPath_radius = Number(config.tickPath_radius || 38);
     this.tickPath_width = Number(config.tickPath_width || 4);
     this.units_offset = Number(config.units_offset || 4);
+    this.minutes = Number(config.minutes || 30);
+    this.graph_height = Number(config.graph_height || 100);
+    this.autoscale = config.autoscale !== false;
+    this.multiplier = 'multiplier' in config ? Number(config.multiplier) : 1;
   }
 
   set hass(hass) {
@@ -79,8 +87,19 @@ class WindCard extends LitElement {
     return this._hass;
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    this._animInterval = setInterval(() => this._animateFromTimeline(), 1000);
+    this._scheduleNextFetch();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    clearInterval(this._animInterval);
+    clearTimeout(this._timeout);
+  }
+
   updated() {
-    // Force repaint of SVG <text> nodes to fix Lit rendering bug
     const labels = this.renderRoot.querySelectorAll('.unit-labels text');
     labels.forEach(el => {
       const val = el.textContent;
@@ -138,8 +157,7 @@ class WindCard extends LitElement {
   }
 
   _directionToText(deg) {
-    const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
-      'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
     const norm = ((deg % 360) + 360) % 360;
     const i = Math.round(norm / 22.5) % 16;
     return dirs[i];
@@ -173,47 +191,158 @@ class WindCard extends LitElement {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
+  _scheduleNextFetch() {
+    this._fetchData();
+    const now = new Date();
+    const ms = 60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
+    this._timeout = setTimeout(() => this._scheduleNextFetch(), ms);
+  }
 
-  static get styles() {
-    return css`
-      :host {
-        display: block;
+  async _fetchData() {
+    if (!this.hass || !this.config) return;
+
+    const minutes = this.minutes;
+    const now = new Date();
+    now.setSeconds(0, 0);
+    now.setMinutes(now.getMinutes());
+    const end = now.toISOString();
+    const start = new Date(now.getTime() - minutes * 60000).toISOString();
+    const ids = `${this.config.wind_entity},${this.config.gust_entity},${this.config.direction_entity}`;
+
+    try {
+      const hist = await this.hass.callApi(
+        'GET',
+        `history/period/${start}?end_time=${end}&filter_entity_id=${ids}&minimal_response`
+      );
+
+      const windHist = hist.find(h => Array.isArray(h) && h[0]?.entity_id === this.config.wind_entity) ?? [];
+      const gustHist = hist.find(h => Array.isArray(h) && h[0]?.entity_id === this.config.gust_entity) ?? [];
+      const dirHist = hist.find(h => Array.isArray(h) && h[0]?.entity_id === this.config.direction_entity) ?? [];
+
+      this._noData = !windHist.length && !gustHist.length && !dirHist.length;
+
+      const avgPerMinute = entries => {
+        const map = {};
+        entries.forEach(e => {
+          const t = new Date(e.last_changed || e.last_updated);
+          const key = t.toISOString().slice(0, 16);
+          const val = parseFloat(e.state);
+          if (!isFinite(val) || val < 0 || val > 100) return;
+          if (!map[key]) map[key] = { sum: 0, count: 0 };
+          map[key].sum += val;
+          map[key].count += 1;
+        });
+        return Object.keys(map).sort().map(k => ({ minute: k, avg: map[k].sum / map[k].count }));
+      };
+
+      const avgVectorPerMinute = entries => {
+        const map = {};
+        entries.forEach(e => {
+          const t = new Date(e.last_changed || e.last_updated);
+          const key = t.toISOString().slice(0, 16);
+          const val = parseFloat(e.state);
+          if (!isFinite(val)) return;
+          const rad = (val * Math.PI) / 180;
+          if (!map[key]) map[key] = { x: 0, y: 0, count: 0 };
+          map[key].x += Math.cos(rad);
+          map[key].y += Math.sin(rad);
+          map[key].count += 1;
+        });
+        return Object.keys(map).sort().map(k => {
+          const d = map[k];
+          const avgRad = Math.atan2(d.y / d.count, d.x / d.count);
+          const deg = (avgRad * 180) / Math.PI;
+          return { minute: k, avg: (deg + 360) % 360 };
+        });
+      };
+
+      const windAvg = avgPerMinute(windHist);
+      const gustAvg = avgPerMinute(gustHist);
+      const dirAvg = avgVectorPerMinute(dirHist);
+
+      const minuteMap = {};
+      windAvg.forEach(({ minute, avg }) => { minuteMap[minute] = { ...minuteMap[minute], wind: avg }; });
+      gustAvg.forEach(({ minute, avg }) => { minuteMap[minute] = { ...minuteMap[minute], gust: avg }; });
+      dirAvg.forEach(({ minute, avg }) => { minuteMap[minute] = { ...minuteMap[minute], direction: avg }; });
+
+      const data = [];
+      let max = 0;
+
+      for (let i = minutes; i >= 0; i--) {
+        const mTime = new Date(now.getTime() - i * 60000);
+        const key = mTime.toISOString().slice(0, 16);
+
+        const windRaw = minuteMap[key]?.wind;
+        const gustRaw = minuteMap[key]?.gust ?? windRaw;
+        const dirRaw = minuteMap[key]?.direction;
+
+        if (!Number.isFinite(windRaw) || !Number.isFinite(gustRaw) || !Number.isFinite(dirRaw)) {
+          continue;
+        }
+
+        const gustFinal = Math.min(60, Math.max(0, gustRaw));
+        const windFinal = Math.min(60, Math.max(0, windRaw));
+        const direction = dirRaw;
+
+        max = Math.max(max, Math.ceil(gustFinal / 5) * 5);
+        data.push({ wind: windFinal, gust: gustFinal, direction });
       }
-      .container {
-        position: relative;
-        margin: auto;
+
+      if (this._initialLoad) {
+        this._data = data.map(() => ({ wind: 0, gust: 0, direction: 0 }));
+        this._maxGust = max;
+        this._lastUpdated = new Date();
+        await this.updateComplete;
+        this._initialLoad = false;
       }
-      svg {
-        width: 100%;
-        height: 100%;
-      }
-      .info text {
-        fill: var(--primary-text-color, #212121);
-        font-family: var(--ha-card-font-family, var(--paper-font-body1_-_font-family));
-        text-anchor: middle;
-        dominant-baseline: central;
-      }
-      .info .direction,
-      .info .gust {
-        font-size: 8px;
-      }
-      .info .speed {
-        font-size: 24px;
-        font-weight: 800;
-      }
-      .marker {
-        transition: transform 1s ease-in-out, fill 1s ease-in-out;
-        transform-origin: 50% 50%;
-        transform-box: view-box;
-      }
-      .ring text {
-        fill: var(--primary-text-color, #212121);
-        font-weight: bold;
-      }
-      text {
-        fill: var(--primary-text-color, #212121);
-      }
-    `;
+
+      await this._updateDataRolling(data);
+      this._maxGust = max;
+      this._lastUpdated = new Date();
+    } catch (err) {
+      this._data = [];
+      this._maxGust = 0;
+      this._noData = true;
+      console.error('Failed to fetch wind data', err);
+    }
+  }
+
+  _getColor(speed) {
+    return this._speedToColor(speed);
+  }
+
+  async _updateDataRolling(newData) {
+    if (!Array.isArray(newData)) return;
+    const current = Array.isArray(this._data)
+      ? [...this._data]
+      : newData.map(() => ({ wind: 0, gust: 0, direction: 0 }));
+    for (let i = newData.length - 1; i >= 0; i--) {
+      current[i] = newData[i];
+      this._data = [...current];
+      await new Promise(res => setTimeout(res, 50));
+    }
+  }
+
+  _renderBar({ wind, gust, direction }) {
+    const auto = this.autoscale;
+    const scale = this._maxGust || 1;
+    const height = this.graph_height;
+    const multiplier = this.multiplier ?? 1;
+    const avail = Math.max(0, height - height / this.minutes);
+    const windHeight = auto ? Math.round((wind / scale) * avail) : Math.round(wind * multiplier);
+    const gustHeight = auto ? Math.max(0, Math.round(((gust - wind) / scale) * avail)) : Math.max(0, Math.round((gust - wind) * multiplier));
+    const colorWind = this._getColor(wind);
+    const colorGust = this._getColor(gust);
+    return html`
+      <div class="wind-bar-segment">
+        <div class="bar-wrapper">
+          <div class="bar-container">
+            <div class="date-wind-bar-segment" style="background:${colorWind};height:${windHeight}px;width:100%;"></div>
+            ${gustHeight > 0 ? html`<div class="date-gust-bar-segment" style="background:${colorGust};height:1px;margin-bottom:${gustHeight}px;width:100%;"></div>` : null}
+          </div>
+          <ha-icon class="dir-icon" icon="mdi:navigation" style="--mdc-icon-size: 80%; transform: rotate(${direction + 180}deg);"></ha-icon>
+        </div>
+      </div>`;
   }
 
   render() {
@@ -225,7 +354,7 @@ class WindCard extends LitElement {
     const tick_length_minor = this.tickPath_width / 2;
     const cardinal_offset = this.cardinal_offset;
     const majorPath = this._buildTickPath(tickPath_radius, tick_length_major, 30, [0, 90, 180, 270]);
-    const minorPath = this._buildTickPath(tickPath_radius, tick_length_minor, 5, [355, 0, 5, 85, 90, 95, 175, 180, 185, 265, 270, 275]);
+    const minorPath = this._buildTickPath(tickPath_radius, tick_length_minor, 5, [355,0,5,85,90,95,175,180,185,265,270,275]);
     const circumference = 2 * Math.PI * radius;
     const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
@@ -236,153 +365,25 @@ class WindCard extends LitElement {
       <ha-card>
         <div class="container" style="width:${this.size}px; height:${this.size}px;">
           <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
-            <circle
-              cx="50"
-              cy="50"
-              r="${radius}"
-              fill="none"
-              stroke="${gustColor}"
-              stroke-width="${this.gauge_width}"
-              stroke-dasharray="${circumference}"
-              stroke-dashoffset="${gustOffset}"
-              style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;"
-              transform="rotate(-90 50 50)"
-              opacity="1"
-            ></circle>
-            <circle
-              cx="50"
-              cy="50"
-              r="${radius}"
-              fill="none"
-              stroke="${windColor}"
-              stroke-width="${this.gauge_width}"
-              stroke-dasharray="${circumference}"
-              stroke-dashoffset="${speedOffset}"
-              style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;"
-              transform="rotate(-90 50 50)"
-              opacity="1"
-            ></circle>
-
-
+            <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${gustColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${gustOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
+            <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${windColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${speedOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
             <g class="ring">
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - tickPath_radius + cardinal_offset}" font-size="11">N</text>
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + tickPath_radius - cardinal_offset}" y="50" font-size="11">E</text>
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + tickPath_radius - cardinal_offset}" font-size="11">S</text>
-              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - tickPath_radius + cardinal_offset}" y="50" font-size="11">W</text>              
+              <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - tickPath_radius + cardinal_offset}" y="50" font-size="11">W</text>
               <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
               <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
             </g>
-
-
             <g class="unit-labels">
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 5 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 5 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >5</text>
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 10 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 10 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >10</text>
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 15 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 15 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >15</text>
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 20 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 20 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >20</text>
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 25 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 25 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >25</text>
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 30 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 30 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >30</text>
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 35 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 35 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >35</text>
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 40 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 40 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >40</text>
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 45 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 45 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >45</text>
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 50 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 50 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >50</text>
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 55 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 55 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >55</text>
-              <text
-                x="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 60 * 6).x}"
-                y="${this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, 60 * 6).y}"
-                font-size="4"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                
-              >60</text>
+              ${[5,10,15,20,25,30,35,40,45,50,55,60].map(v => {
+                const p = this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, v * 6);
+                return html`<text x="${p.x}" y="${p.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">${v}</text>`;
+              })}
             </g>
-
             <g class="indicators">
-              <path class="compass marker"
-                stroke="var(--card-background-color, white)"
-                stroke-linejoin="bevel"
-                d="m 50,${tickPath_radius + 42} l 5,3 l -5,-12 l -5,12 z"
-                fill="var(--primary-text-color, #212121)" stroke-width="0"
-                style="transform: rotate(${this.direction + 180}deg);">
-              </path>
+              <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="m 50,${tickPath_radius + 42} l 5,3 l -5,-12 l -5,12 z" fill="var(--primary-text-color, #212121)" stroke-width="0" style="transform: rotate(${this.direction + 180}deg);"></path>
             </g>
-
             <g class="info">
               <text class="direction" x="50" y="34">${dirText}</text>
               <text class="speed" x="50" y="50" fill="${windColor}">${this.windSpeed.toFixed(1)}</text>
@@ -390,9 +391,134 @@ class WindCard extends LitElement {
             </g>
           </svg>
         </div>
+        ${this._noData ? html`<div class="no-data">${this._error || 'No data available'}</div>` : html`
+          <div class="graph" style="height:${this.graph_height}px">
+            <div class="overlay-lines">
+              ${(() => {
+                const scale = this._maxGust || 1;
+                const lines = [];
+                for (let v = 5; v <= scale; v += 5) {
+                  lines.push(html`<div class="h-line" style="bottom:${this.autoscale ? (v / scale) * 100 + '%' : v * this.multiplier + 'px'}"></div>`);
+                }
+                return lines;
+              })()}
+            </div>
+            ${repeat(this._data, (_d, index) => index, d => this._renderBar(d))}
+          </div>
+          <div class="footer">Updated: ${this._lastUpdated?.toLocaleTimeString()}</div>
+        `}
       </ha-card>
     `;
   }
+
+  static styles = css`
+    :host {
+      display: block;
+    }
+    .container {
+      position: relative;
+      margin: auto;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+    .info text {
+      fill: var(--primary-text-color, #212121);
+      font-family: var(--ha-card-font-family, var(--paper-font-body1_-_font-family));
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+    .info .direction,
+    .info .gust {
+      font-size: 8px;
+    }
+    .info .speed {
+      font-size: 24px;
+      font-weight: 800;
+    }
+    .marker {
+      transition: transform 1s ease-in-out, fill 1s ease-in-out;
+      transform-origin: 50% 50%;
+      transform-box: view-box;
+    }
+    .ring text {
+      fill: var(--primary-text-color, #212121);
+      font-weight: bold;
+    }
+    text {
+      fill: var(--primary-text-color, #212121);
+    }
+    .graph {
+      display: flex;
+      align-items: end;
+      gap: 1px;
+      position: relative;
+    }
+    .overlay-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .wind-bar-segment {
+      flex: 1 1 0%;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 100%;
+      z-index: 0;
+    }
+    .bar-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .bar-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: stretch;
+      transition: height 0.6s ease;
+    }
+    .dir-icon {
+      position: absolute;
+      bottom: 0;
+      pointer-events: none;
+      transform-origin: center center;
+    }
+    .h-line {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: var(--card-background-color);
+    }
+    .date-wind-bar-segment,
+    .date-gust-bar-segment {
+      display: inline-block;
+      transition: height 0.6s ease, margin-bottom 0.6s ease, background-color 0.6s ease;
+    }
+    .footer {
+      text-align: right;
+      font-size: 9px;
+      font-weight: 400;
+      padding: 4px 12px;
+      color: var(--secondary-text-color);
+    }
+    .no-data {
+      padding: 16px;
+      text-align: center;
+    }
+  `;
 }
 
 customElements.define('wind-card', WindCard);
+

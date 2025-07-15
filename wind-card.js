@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'https://unpkg.com/lit?module';
+import { LitElement, svg, html, css } from 'https://unpkg.com/lit?module';
 import { repeat } from 'https://unpkg.com/lit/directives/repeat.js?module';
 
 // Color scale used for wind and gust speeds. This mirrors the palette from
@@ -378,7 +378,7 @@ class WindCard extends LitElement {
             <g class="unit-labels">
               ${[5,10,15,20,25,30,35,40,45,50,55,60].map(v => {
                 const p = this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, v * 6);
-                return html`<text x="${p.x}" y="${p.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">${v}</text>`;
+                return svg`<text x="${p.x}" y="${p.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">${v}</text>`;
               })}
             </g>
             <g class="indicators">

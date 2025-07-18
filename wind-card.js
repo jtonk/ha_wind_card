@@ -57,6 +57,9 @@ class WindCard extends LitElement {
     this._initialLoad = true;
     this.show_graph = true;
     this._hoverData = null;
+    this._dragging = false;
+    this._boundPointerMove = this._onGlobalPointerMove.bind(this);
+    this._boundPointerUp = this._onGlobalPointerUp.bind(this);
   }
 
   setConfig(config) {
@@ -354,9 +357,35 @@ class WindCard extends LitElement {
   _onBarDown(e, data) {
     e.preventDefault();
     this._onBarEnter(data);
+    this._dragging = true;
+    window.addEventListener('pointermove', this._boundPointerMove);
+    window.addEventListener('pointerup', this._boundPointerUp);
   }
 
-  _renderBar({ wind, gust, direction }) {
+  _onGlobalPointerMove(e) {
+    if (!this._dragging) return;
+    const graph = this.renderRoot.querySelector('.graph');
+    if (!graph) return;
+    const target = document.elementFromPoint(e.clientX, e.clientY);
+    const segment = target?.closest('.wind-bar-segment');
+    if (segment && graph.contains(segment)) {
+      const segments = Array.from(graph.querySelectorAll('.wind-bar-segment'));
+      const index = segments.indexOf(segment);
+      const data = this._data[index];
+      if (data) {
+        this._onBarEnter(data);
+      }
+    }
+  }
+
+  _onGlobalPointerUp() {
+    this._dragging = false;
+    window.removeEventListener('pointermove', this._boundPointerMove);
+    window.removeEventListener('pointerup', this._boundPointerUp);
+    this._onBarLeave();
+  }
+
+  _renderBar({ wind, gust, direction }, index) {
     const auto = this.autoscale;
     const scale = this._maxGust || 1;
     const height = this.graph_height;
@@ -367,7 +396,7 @@ class WindCard extends LitElement {
     const colorWind = this._getColor(wind);
     const colorGust = this._getColor(gust);
     return html`
-      <div class="wind-bar-segment"
+      <div class="wind-bar-segment" data-index="${index}"
            @pointerdown=${(e) => this._onBarDown(e, { wind, gust, direction })}
            @pointerenter=${() => this._onBarEnter({ wind, gust, direction })}
            @pointermove=${() => this._onBarEnter({ wind, gust, direction })}
@@ -440,7 +469,7 @@ class WindCard extends LitElement {
                 return lines;
               })()}
             </div>
-            ${repeat(this._data, (_d, index) => index, d => this._renderBar(d))}
+            ${repeat(this._data, (_d, index) => index, (d, index) => this._renderBar(d, index))}
           </div>
           <div class="footer">Updated: ${this._lastUpdated?.toLocaleTimeString()}</div>
         `) : ''}

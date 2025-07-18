@@ -60,6 +60,8 @@ class WindCard extends LitElement {
     this._dragging = false;
     this._boundPointerMove = this._onGlobalPointerMove.bind(this);
     this._boundPointerUp = this._onGlobalPointerUp.bind(this);
+    this._boundTouchMove = this._onGlobalTouchMove.bind(this);
+    this._boundTouchEnd = this._onGlobalTouchEnd.bind(this);
   }
 
   setConfig(config) {
@@ -356,14 +358,22 @@ class WindCard extends LitElement {
 
   _onBarDown(e) {
     e.preventDefault();
+    if (e.currentTarget.setPointerCapture && e.pointerId !== undefined) {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
     const idx = parseInt(e.currentTarget.dataset.index);
     const data = this._data[idx];
     if (data) {
       this._onBarEnter(data);
     }
     this._dragging = true;
-    window.addEventListener('pointermove', this._boundPointerMove);
-    window.addEventListener('pointerup', this._boundPointerUp);
+    if (e.type.startsWith('touch')) {
+      window.addEventListener('touchmove', this._boundTouchMove);
+      window.addEventListener('touchend', this._boundTouchEnd);
+    } else {
+      window.addEventListener('pointermove', this._boundPointerMove);
+      window.addEventListener('pointerup', this._boundPointerUp);
+    }
   }
 
   _onSegmentEnter(e) {
@@ -393,6 +403,32 @@ class WindCard extends LitElement {
     this._dragging = false;
     window.removeEventListener('pointermove', this._boundPointerMove);
     window.removeEventListener('pointerup', this._boundPointerUp);
+    window.removeEventListener('touchmove', this._boundTouchMove);
+    window.removeEventListener('touchend', this._boundTouchEnd);
+    this._onBarLeave();
+  }
+
+  _onGlobalTouchMove(e) {
+    if (!this._dragging) return;
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    const graph = this.renderRoot.querySelector('.graph');
+    if (!graph) return;
+    const target = document.elementFromPoint(t.clientX, t.clientY);
+    const segment = target?.closest('.wind-bar-segment');
+    if (segment && graph.contains(segment)) {
+      const idx = parseInt(segment.dataset.index);
+      const data = this._data[idx];
+      if (data) {
+        this._onBarEnter(data);
+      }
+    }
+  }
+
+  _onGlobalTouchEnd() {
+    this._dragging = false;
+    window.removeEventListener('touchmove', this._boundTouchMove);
+    window.removeEventListener('touchend', this._boundTouchEnd);
     this._onBarLeave();
   }
 
@@ -411,7 +447,10 @@ class WindCard extends LitElement {
            @pointerdown=${(e) => this._onBarDown(e)}
            @pointerenter=${(e) => this._onSegmentEnter(e)}
            @pointermove=${(e) => this._onSegmentEnter(e)}
-           @pointerleave=${() => this._onBarLeave()}>
+           @pointerleave=${() => this._onBarLeave()}
+           @touchstart=${(e) => this._onBarDown(e)}
+           @touchmove=${(e) => this._onSegmentEnter(e)}
+           @touchend=${() => this._onBarLeave()}>
         <div class="bar-wrapper">
           <div class="bar-container">
             <div class="date-wind-bar-segment" style="background:${colorWind};height:${windHeight}px;width:100%;"></div>
@@ -531,7 +570,7 @@ class WindCard extends LitElement {
       align-items: end;
       gap: 1px;
       position: relative;
-      touch-action: pan-y;
+      touch-action: none;
     }
     .overlay-lines {
       position: absolute;

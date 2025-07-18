@@ -388,7 +388,7 @@ class WindCard extends LitElement {
     if (!this._dragging) return;
     const graph = this.renderRoot.querySelector('.graph');
     if (!graph) return;
-    const target = document.elementFromPoint(e.clientX, e.clientY);
+    const target = this.renderRoot.elementFromPoint(e.clientX, e.clientY);
     const segment = target?.closest('.wind-bar-segment');
     if (segment && graph.contains(segment)) {
       const idx = parseInt(segment.dataset.index);
@@ -414,7 +414,7 @@ class WindCard extends LitElement {
     if (!t) return;
     const graph = this.renderRoot.querySelector('.graph');
     if (!graph) return;
-    const target = document.elementFromPoint(t.clientX, t.clientY);
+    const target = this.renderRoot.elementFromPoint(t.clientX, t.clientY);
     const segment = target?.closest('.wind-bar-segment');
     if (segment && graph.contains(segment)) {
       const idx = parseInt(segment.dataset.index);

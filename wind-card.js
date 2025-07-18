@@ -354,12 +354,24 @@ class WindCard extends LitElement {
     this._animateFromTimeline();
   }
 
-  _onBarDown(e, data) {
+  _onBarDown(e) {
     e.preventDefault();
-    this._onBarEnter(data);
+    const idx = parseInt(e.currentTarget.dataset.index);
+    const data = this._data[idx];
+    if (data) {
+      this._onBarEnter(data);
+    }
     this._dragging = true;
     window.addEventListener('pointermove', this._boundPointerMove);
     window.addEventListener('pointerup', this._boundPointerUp);
+  }
+
+  _onSegmentEnter(e) {
+    const idx = parseInt(e.currentTarget.dataset.index);
+    const data = this._data[idx];
+    if (data) {
+      this._onBarEnter(data);
+    }
   }
 
   _onGlobalPointerMove(e) {
@@ -369,9 +381,8 @@ class WindCard extends LitElement {
     const target = document.elementFromPoint(e.clientX, e.clientY);
     const segment = target?.closest('.wind-bar-segment');
     if (segment && graph.contains(segment)) {
-      const segments = Array.from(graph.querySelectorAll('.wind-bar-segment'));
-      const index = segments.indexOf(segment);
-      const data = this._data[index];
+      const idx = parseInt(segment.dataset.index);
+      const data = this._data[idx];
       if (data) {
         this._onBarEnter(data);
       }
@@ -397,9 +408,9 @@ class WindCard extends LitElement {
     const colorGust = this._getColor(gust);
     return html`
       <div class="wind-bar-segment" data-index="${index}"
-           @pointerdown=${(e) => this._onBarDown(e, { wind, gust, direction })}
-           @pointerenter=${() => this._onBarEnter({ wind, gust, direction })}
-           @pointermove=${() => this._onBarEnter({ wind, gust, direction })}
+           @pointerdown=${(e) => this._onBarDown(e)}
+           @pointerenter=${(e) => this._onSegmentEnter(e)}
+           @pointermove=${(e) => this._onSegmentEnter(e)}
            @pointerleave=${() => this._onBarLeave()}>
         <div class="bar-wrapper">
           <div class="bar-container">

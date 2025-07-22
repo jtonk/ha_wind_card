@@ -585,7 +585,6 @@ class WindCard extends LitElement {
       display: flex;
       align-items: flex-end;
       justify-content: center;
-      /* height: 100%; */
       z-index: 0;
     }
     /* .bar-wrapper {

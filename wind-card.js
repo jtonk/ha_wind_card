@@ -455,7 +455,7 @@ class WindCard extends LitElement {
           <div class="date-wind-bar-segment" style="background:${colorWind};height:${windHeight}px;width:100%;"></div>
           ${gustHeight > 0 ? html`<div class="date-gust-bar-segment" style="background:${colorGust};height:1px;margin-bottom:${gustHeight}px;width:100%;"></div>` : null}
         </div>
-        <ha-icon class="dir-icon" icon="mdi:navigation" style="--mdc-icon-size: 80%; transform: translate(-50%, 100%) rotate(${direction + 180}deg);"></ha-icon>
+        <ha-icon class="dir-icon" icon="mdi:navigation" style="--mdc-icon-size: 80%; transform: rotate(${direction + 180}deg);"></ha-icon>
       </div>`;
   }
 
@@ -606,7 +606,6 @@ class WindCard extends LitElement {
     .dir-icon {
       position: absolute;
       bottom: 0;
-      left: 50%;
       pointer-events: none;
       transform-origin: center center;
     }

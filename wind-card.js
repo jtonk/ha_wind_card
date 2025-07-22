@@ -583,9 +583,7 @@ class WindCard extends LitElement {
       flex: 1 1 0%;
       position: relative;
       display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      z-index: 0;
+      flex-direction: column;
     }
     /* .bar-wrapper {
        position: relative;
@@ -603,8 +601,6 @@ class WindCard extends LitElement {
       transition: height 0.6s ease;
     }
     .dir-icon {
-      position: absolute;
-      bottom: 0;
       pointer-events: none;
       transform-origin: center center;
     }

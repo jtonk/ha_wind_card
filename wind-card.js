@@ -451,9 +451,11 @@ class WindCard extends LitElement {
            @touchstart=${(e) => this._onBarDown(e)}
            @touchmove=${(e) => this._onSegmentEnter(e)}
            @touchend=${() => this._onBarLeave()}>
-        <div class="bar-container">
-          <div class="date-wind-bar-segment" style="background:${colorWind};height:${windHeight}px;width:100%;"></div>
-          ${gustHeight > 0 ? html`<div class="date-gust-bar-segment" style="background:${colorGust};height:1px;margin-bottom:${gustHeight}px;width:100%;"></div>` : null}
+        <div class="bar-wrapper">
+          <div class="bar-container">
+            <div class="date-wind-bar-segment" style="background:${colorWind};height:${windHeight}px;width:100%;"></div>
+            ${gustHeight > 0 ? html`<div class="date-gust-bar-segment" style="background:${colorGust};height:1px;margin-bottom:${gustHeight}px;width:100%;"></div>` : null}
+          </div>
         </div>
         <ha-icon class="dir-icon" icon="mdi:navigation" style="--mdc-icon-size: 80%; transform: rotate(${direction + 180}deg);"></ha-icon>
       </div>`;

@@ -590,14 +590,14 @@ class WindCard extends LitElement {
       height: 100%;
       z-index: 0;
     }
-    .bar-wrapper {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-    }
+    // .bar-wrapper {
+    //   position: relative;
+    //   width: 100%;
+    //   height: 100%;
+    //   display: flex;
+    //   align-items: flex-end;
+    //   justify-content: center;
+    // }
     .bar-container {
       width: 100%;
       display: flex;

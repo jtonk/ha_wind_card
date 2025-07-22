@@ -1,4 +1,3 @@
-//test 123
 import { LitElement, svg, html, css } from 'https://unpkg.com/lit?module';
 import { repeat } from 'https://unpkg.com/lit/directives/repeat.js?module';
 
@@ -456,7 +455,7 @@ class WindCard extends LitElement {
           <div class="date-wind-bar-segment" style="background:${colorWind};height:${windHeight}px;width:100%;"></div>
           ${gustHeight > 0 ? html`<div class="date-gust-bar-segment" style="background:${colorGust};height:1px;margin-bottom:${gustHeight}px;width:100%;"></div>` : null}
         </div>
-        <ha-icon class="dir-icon" icon="mdi:navigation" style="--mdc-icon-size: 80%; transform: rotate(${direction + 180}deg);"></ha-icon>
+        <ha-icon class="dir-icon" icon="mdi:navigation" style="--mdc-icon-size: 80%; transform: translate(-50%, 100%) rotate(${direction + 180}deg);"></ha-icon>
       </div>`;
   }
 
@@ -586,17 +585,17 @@ class WindCard extends LitElement {
       display: flex;
       align-items: flex-end;
       justify-content: center;
-      //height: 100%;
+      /* height: 100%; */
       z-index: 0;
     }
-    // .bar-wrapper {
-    //   position: relative;
-    //   width: 100%;
-    //   height: 100%;
-    //   display: flex;
-    //   align-items: flex-end;
-    //   justify-content: center;
-    // }
+    /* .bar-wrapper {
+       position: relative;
+       width: 100%;
+       height: 100%;
+       display: flex;
+       align-items: flex-end;
+       justify-content: center;
+     } */
     .bar-container {
       width: 100%;
       display: flex;
@@ -607,6 +606,7 @@ class WindCard extends LitElement {
     .dir-icon {
       position: absolute;
       bottom: 0;
+      left: 50%;
       pointer-events: none;
       transform-origin: center center;
     }

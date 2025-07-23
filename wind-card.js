@@ -497,6 +497,11 @@ class WindCard extends LitElement {
     return html`
       <ha-card>
         <div class="container" style="width:${this.size}px; height:${this.size}px;">
+          ${this.show_graph && !this._noData ? html`
+            <div class="graph graph-behind" style="height:${this.graph_height}px">
+              ${repeat(this._data, (_d, index) => index, (d, index) => this._renderBar(d, index))}
+            </div>
+          ` : ''}
           <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${gustColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${gustOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${windColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${speedOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
@@ -523,13 +528,11 @@ class WindCard extends LitElement {
               <text class="gust" x="50" y="66" fill="${gustColor}">${this.gust.toFixed(1)} kn</text>
             </g>
           </svg>
+          ${this.show_graph && this._noData ? html`<div class="no-data">${this._error || 'No data available'}</div>` : ''}
         </div>
-        ${this.show_graph ? (this._noData ? html`<div class="no-data">${this._error || 'No data available'}</div>` : html`
-          <div class="graph" style="height:${this.graph_height}px">
-            ${repeat(this._data, (_d, index) => index, (d, index) => this._renderBar(d, index))}
-          </div>
+        ${this.show_graph && !this._noData ? html`
           <div class="footer">Updated: ${this._lastUpdated?.toLocaleTimeString()}</div>
-        `) : ''}
+        ` : ''}
       </ha-card>
     `;
   }
@@ -541,10 +544,27 @@ class WindCard extends LitElement {
     .container {
       position: relative;
       margin: auto;
+      width: 100%;
+      height: 100%;
     }
     svg {
       width: 100%;
       height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .graph-behind {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      display: flex;
+      align-items: end;
+      gap: 1px;
+      pointer-events: auto;
     }
     .info text {
       fill: var(--primary-text-color, #212121);

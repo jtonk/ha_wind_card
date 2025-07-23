@@ -492,7 +492,7 @@ class WindCard extends LitElement {
       if (!d) continue;
       const minute = (now.getMinutes() - i + 60) % 60;
       const angle = minute * 6;
-      const len = (d.wind / maxSpeed) * this.radius;
+      const len = (d.wind / maxSpeed) * radius;
       const outer = this._polarToCartesian(50, 50, radius, angle);
       const inner = this._polarToCartesian(50, 50, radius - len, angle);
       const color = this._speedToColor(d.wind);

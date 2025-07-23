@@ -497,7 +497,7 @@ class WindCard extends LitElement {
       const inner = this._polarToCartesian(50, 50, radius - len, angle);
       const color = this._speedToColor(d.wind);
       const opacity = i >= 50 ? 1 - (i - 50) / 10 : 1;
-      lines.push(svg`<path d="M ${inner.x},${inner.y} L ${outer.x},${outer.y}" stroke="${color}" stroke-width="3" stroke-linecap="butt" opacity="${opacity}"></path>`);
+      lines.push(svg`<path d="M ${inner.x},${inner.y} L ${outer.x},${outer.y}" stroke="${color}" stroke-width="2" stroke-linecap="butt" opacity="${opacity}"></path>`);
     }
     return lines;
   }

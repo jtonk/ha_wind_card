@@ -478,28 +478,19 @@ class WindCard extends LitElement {
   }
 
   _renderMinuteTicks() {
-    if (!Array.isArray(this._data) || this._data.length === 0) {
-      return null;
-    }
-    const now = new Date();
+    if (!Array.isArray(this._data) || this._data.length === 0) return null;
     const radius = this.tickPath_radius;
     const maxSpeed = 60;
-    const lines = [];
-    const dataCount = Math.min(60, this._data.length);
-    for (let i = 0; i < dataCount; i++) {
-      const idx = this._data.length - 1 - i;
-      const d = this._data[idx];
-      if (!d) continue;
-      const minute = (now.getMinutes() - i + 60) % 60;
-      const angle = minute * 6;
-      const len = (d.wind / maxSpeed) * this.tickPath_width;
+    const scale = 1.5; // exaggerate visually
+    return this._data.map((d, i, arr) => {
+      const angle = (i / arr.length) * 360;
+      const len = Math.max(0.5, (d.wind / maxSpeed) * this.tickPath_width * scale);
       const outer = this._polarToCartesian(50, 50, radius, angle);
       const inner = this._polarToCartesian(50, 50, radius - len, angle);
       const color = this._speedToColor(d.wind);
       const opacity = i >= 50 ? 1 - (i - 50) / 10 : 1;
-      lines.push(svg`<path d="M ${inner.x},${inner.y} L ${outer.x},${outer.y}" stroke="${color}" stroke-width="3" stroke-linecap="butt" opacity="${opacity}"></path>`);
-    }
-    return lines;
+      return svg`<path d="M ${inner.x},${inner.y} L ${outer.x},${outer.y}" stroke="${color}" stroke-width="3" stroke-linecap="butt" opacity="${opacity}"></path>`;
+    });
   }
 
   render() {

@@ -526,16 +526,6 @@ class WindCard extends LitElement {
         </div>
         ${this.show_graph ? (this._noData ? html`<div class="no-data">${this._error || 'No data available'}</div>` : html`
           <div class="graph" style="height:${this.graph_height}px">
-            <div class="overlay-lines">
-              ${(() => {
-                const scale = this._maxGust || 1;
-                const lines = [];
-                for (let v = 5; v <= scale; v += 5) {
-                  lines.push(html`<div class="h-line" style="bottom:${this.autoscale ? (v / scale) * 100 + '%' : v * this.multiplier + 'px'}"></div>`);
-                }
-                return lines;
-              })()}
-            </div>
             ${repeat(this._data, (_d, index) => index, (d, index) => this._renderBar(d, index))}
           </div>
           <div class="footer">Updated: ${this._lastUpdated?.toLocaleTimeString()}</div>
@@ -579,9 +569,6 @@ class WindCard extends LitElement {
       fill: var(--primary-text-color, #212121);
       font-weight: bold;
     }
-    .minute-ticks path {
-      transition: stroke 0.6s ease, opacity 0.6s ease, stroke-dasharray 0.6s ease;
-    }
     text {
       fill: var(--primary-text-color, #212121);
     }
@@ -613,13 +600,6 @@ class WindCard extends LitElement {
       flex-direction: column-reverse;
       align-items: stretch;
       transition: height 0.6s ease;
-    }
-    .h-line {
-      position: absolute;
-      left: 0;
-      width: 100%;
-      height: 1px;
-      background: var(--card-background-color);
     }
     .date-wind-bar-segment,
     .date-gust-bar-segment {

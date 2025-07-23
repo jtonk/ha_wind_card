@@ -484,19 +484,20 @@ class WindCard extends LitElement {
     const now = new Date();
     const radius = this.tickPath_radius;
     const maxGust = this._data.reduce((m, d) => Math.max(m, d?.gust ?? 0), 0);
-    const maxSpeed = maxGust + 10;
+    const maxSpeed = Math.max(maxGust, this.gust) + 10;
     const lines = [];
     const dataCount = Math.min(60, this._data.length);
     for (let i = 0; i < dataCount; i++) {
       const idx = this._data.length - 1 - i;
       const d = this._data[idx];
-      if (!d) continue;
+      if (!d && i !== 0) continue;
       const minute = (now.getMinutes() - i + 60) % 60;
       const angle = minute * 6;
       const outer = this._polarToCartesian(50, 50, radius, angle);
-      const color = this._speedToColor(d.wind);
+      const windVal = i === 0 ? this.windSpeed : d.wind;
+      const color = this._speedToColor(windVal);
       const opacity = i >= 50 ? 1 - (i - 50) / 10 : 1;
-      const dash = (Math.min(d.wind, maxSpeed) / maxSpeed) * radius;
+      const dash = (Math.min(windVal, maxSpeed) / maxSpeed) * radius;
       lines.push(svg`<path d="M ${outer.x},${outer.y} L 50,50" stroke="${color}" stroke-width="1" stroke-linecap="butt" stroke-dasharray="${dash} ${radius}" opacity="${opacity}"></path>`);
     }
     return lines;

@@ -483,7 +483,8 @@ class WindCard extends LitElement {
     }
     const now = new Date();
     const radius = this.tickPath_radius;
-    const maxSpeed = 60;
+    const maxGust = this._data.reduce((m, d) => Math.max(m, d?.gust ?? 0), 0);
+    const maxSpeed = maxGust + 10;
     const lines = [];
     const dataCount = Math.min(60, this._data.length);
     for (let i = 0; i < dataCount; i++) {
@@ -496,21 +497,11 @@ class WindCard extends LitElement {
       const color = this._speedToColor(d.wind);
       const opacity = i >= 50 ? 1 - (i - 50) / 10 : 1;
       const dash = (Math.min(d.wind, maxSpeed) / maxSpeed) * radius;
-      lines.push(svg`<path d="M ${outer.x},${outer.y} L 50,50" stroke="${color}" stroke-width="2" stroke-linecap="butt" stroke-dasharray="${dash} ${radius}" opacity="${opacity}"></path>`);
+      lines.push(svg`<path d="M ${outer.x},${outer.y} L 50,50" stroke="${color}" stroke-width="1" stroke-linecap="butt" stroke-dasharray="${dash} ${radius}" opacity="${opacity}"></path>`);
     }
     return lines;
   }
 
-  _renderSpeedCircles() {
-    const radius = this.tickPath_radius;
-    const maxSpeed = 60;
-    const circles = [];
-    for (let v = 10; v < maxSpeed; v += 10) {
-      const r = (v / maxSpeed) * radius;
-      circles.push(svg`<circle cx="50" cy="50" r="${r}"></circle>`);
-    }
-    return circles;
-  }
 
   render() {
     const dirText = this._directionToText(this.direction);
@@ -534,9 +525,6 @@ class WindCard extends LitElement {
           <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${gustColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${gustOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${windColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${speedOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
-            <g class="speed-circles">
-              ${this._renderSpeedCircles()}
-            </g>
             <g class="minute-ticks">
               ${this._renderMinuteTicks()}
             </g>
@@ -621,12 +609,6 @@ class WindCard extends LitElement {
     }
     .minute-ticks path {
       transition: stroke 0.6s ease, opacity 0.6s ease, stroke-dasharray 0.6s ease;
-    }
-    .speed-circles circle {
-      stroke: var(--secondary-text-color, #727272);
-      stroke-width: 0.5;
-      fill: none;
-      opacity: 0.3;
     }
     text {
       fill: var(--primary-text-color, #212121);

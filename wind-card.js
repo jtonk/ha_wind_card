@@ -142,6 +142,12 @@ class WindCard extends LitElement {
   }
 
   _animateFromTimeline() {
+    if (!this._isDataLive()) {
+      this.windSpeed = 0;
+      this.gust = 0;
+      this.direction = 0;
+      return;
+    }
     if (this._hoverData) {
       const frame = this._hoverData;
       this.windSpeed = frame.wind ?? this.windSpeed;
@@ -210,6 +216,22 @@ class WindCard extends LitElement {
     const g = (num >> 8) & 255;
     const b = num & 255;
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  _isDataLive() {
+    if (!this.hass || !this.config) return false;
+    const ids = [
+      this.config.wind_entity,
+      this.config.gust_entity,
+      this.config.direction_entity,
+    ];
+    const now = Date.now();
+    return ids.every(id => {
+      const state = this.hass.states[id];
+      if (!state) return false;
+      const ts = new Date(state.last_updated || state.last_changed).getTime();
+      return now - ts <= 60000;
+    });
   }
 
   _scheduleNextFetch() {

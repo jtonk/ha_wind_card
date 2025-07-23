@@ -477,32 +477,6 @@ class WindCard extends LitElement {
       </div>`;
   }
 
-  _renderMinuteTicks() {
-    if (!Array.isArray(this._data) || this._data.length === 0) {
-      return null;
-    }
-    const now = new Date();
-    const radius = this.tickPath_radius;
-    const maxGust = this._data.reduce((m, d) => Math.max(m, d?.gust ?? 0), 0);
-    const maxSpeed = Math.max(maxGust, this.gust) + 10;
-    const lines = [];
-    const dataCount = Math.min(60, this._data.length);
-    for (let i = 0; i < dataCount; i++) {
-      const idx = this._data.length - 1 - i;
-      const d = this._data[idx];
-      if (!d && i !== 0) continue;
-      const minute = (now.getMinutes() - i + 60) % 60;
-      const angle = minute * 6;
-      const outer = this._polarToCartesian(50, 50, radius, angle);
-      const windVal = i === 0 ? this.windSpeed : d.wind;
-      const color = this._speedToColor(windVal);
-      const opacity = i >= 50 ? 1 - (i - 50) / 10 : 1;
-      const dash = (Math.min(windVal, maxSpeed) / maxSpeed) * radius;
-      lines.push(svg`<path d="M ${outer.x},${outer.y} L 50,50" stroke="${color}" stroke-width="1" stroke-linecap="butt" stroke-dasharray="${dash} ${radius}" opacity="${opacity}"></path>`);
-    }
-    return lines;
-  }
-
 
   render() {
     const dirText = this._directionToText(this.direction);
@@ -526,9 +500,6 @@ class WindCard extends LitElement {
           <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${gustColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${gustOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${windColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${speedOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
-            <g class="minute-ticks">
-              ${this._renderMinuteTicks()}
-            </g>
             <g class="ring">
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - tickPath_radius + cardinal_offset}" font-size="11">N</text>
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + tickPath_radius - cardinal_offset}" y="50" font-size="11">E</text>

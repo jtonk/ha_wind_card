@@ -1,4 +1,3 @@
-//testing
 import { LitElement, svg, html, css } from 'https://unpkg.com/lit?module';
 import { repeat } from 'https://unpkg.com/lit/directives/repeat.js?module';
 
@@ -351,9 +350,6 @@ class WindCard extends LitElement {
     }
   }
 
-  _getColor(speed) {
-    return this._speedToColor(speed);
-  }
 
   async _updateDataRolling(newData) {
     if (!Array.isArray(newData)) return;
@@ -463,8 +459,8 @@ class WindCard extends LitElement {
     const avail = Math.max(0, height - height / this.minutes);
     const windHeight = auto ? Math.round((wind / scale) * avail) : Math.round(wind * multiplier);
     const gustHeight = auto ? Math.max(0, Math.round(((gust - wind) / scale) * avail)) : Math.max(0, Math.round((gust - wind) * multiplier));
-    const colorWind = this._getColor(wind);
-    const colorGust = this._getColor(gust);
+    const colorWind = this._speedToColor(wind);
+    const colorGust = this._speedToColor(gust);
     return html`
       <div class="wind-bar-segment" data-index="${index}"
            @pointerdown=${(e) => this._onBarDown(e)}
@@ -607,14 +603,6 @@ class WindCard extends LitElement {
       display: flex;
       flex-direction: column;
     }
-    /* .bar-wrapper {
-       position: relative;
-       width: 100%;
-       height: 100%;
-       display: flex;
-       align-items: flex-end;
-       justify-content: center;
-     } */
     .bar-container {
       width: 100%;
       display: flex;

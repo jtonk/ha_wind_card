@@ -511,7 +511,7 @@ class WindCard extends LitElement {
     const tick_length_minor = this.tickPath_width / 2;
     const cardinal_offset = this.cardinal_offset;
     const majorPath = this._buildTickPath(tickPath_radius, tick_length_major, 30, [0, 90, 180, 270]);
-    const minorPath = this._buildTickPath(tickPath_radius, tick_length_minor, 5, [355,0,5,85,90,95,175,180,185,265,270,275]);
+    const minorPath = this._buildTickPath(tickPath_radius, tick_length_minor, 6, [355,0,5,85,90,95,175,180,185,265,270,275]);
     const circumference = 2 * Math.PI * radius;
     const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);

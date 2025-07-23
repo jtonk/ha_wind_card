@@ -492,14 +492,24 @@ class WindCard extends LitElement {
       if (!d) continue;
       const minute = (now.getMinutes() - i + 60) % 60;
       const angle = minute * 6;
-      const len = d.wind;
       const outer = this._polarToCartesian(50, 50, radius, angle);
-      const inner = this._polarToCartesian(50, 50, radius - len, angle);
       const color = this._speedToColor(d.wind);
       const opacity = i >= 50 ? 1 - (i - 50) / 10 : 1;
-      lines.push(svg`<path d="M ${inner.x},${inner.y} L ${outer.x},${outer.y}" stroke="${color}" stroke-width="2" stroke-linecap="butt" opacity="${opacity}"></path>`);
+      const dash = (Math.min(d.wind, maxSpeed) / maxSpeed) * radius;
+      lines.push(svg`<path d="M ${outer.x},${outer.y} L 50,50" stroke="${color}" stroke-width="2" stroke-linecap="butt" stroke-dasharray="${dash} ${radius}" opacity="${opacity}"></path>`);
     }
     return lines;
+  }
+
+  _renderSpeedCircles() {
+    const radius = this.tickPath_radius;
+    const maxSpeed = 60;
+    const circles = [];
+    for (let v = 10; v < maxSpeed; v += 10) {
+      const r = (v / maxSpeed) * radius;
+      circles.push(svg`<circle cx="50" cy="50" r="${r}"></circle>`);
+    }
+    return circles;
   }
 
   render() {
@@ -524,6 +534,9 @@ class WindCard extends LitElement {
           <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${gustColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${gustOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${windColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${speedOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
+            <g class="speed-circles">
+              ${this._renderSpeedCircles()}
+            </g>
             <g class="minute-ticks">
               ${this._renderMinuteTicks()}
             </g>
@@ -607,7 +620,13 @@ class WindCard extends LitElement {
       font-weight: bold;
     }
     .minute-ticks path {
-      transition: stroke 0.6s ease, opacity 0.6s ease;
+      transition: stroke 0.6s ease, opacity 0.6s ease, stroke-dasharray 0.6s ease;
+    }
+    .speed-circles circle {
+      stroke: var(--secondary-text-color, #727272);
+      stroke-width: 0.5;
+      fill: none;
+      opacity: 0.3;
     }
     text {
       fill: var(--primary-text-color, #212121);

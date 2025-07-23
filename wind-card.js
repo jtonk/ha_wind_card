@@ -496,7 +496,7 @@ class WindCard extends LitElement {
 
     return html`
       <ha-card>
-        <div class="container" style="width:${this.size}px; height:${this.size}px;">
+        <div class="container" style="width:100%; height:${this.size}px;">
           ${this.show_graph && !this._noData ? html`
             <div class="graph graph-behind" style="height:${this.graph_height}px">
               ${repeat(this._data, (_d, index) => index, (d, index) => this._renderBar(d, index))}
@@ -543,6 +543,8 @@ class WindCard extends LitElement {
     }
     .container {
       position: relative;
+      display: flex;
+      align-items: end;
       margin: auto;
       width: 100%;
       height: 100%;

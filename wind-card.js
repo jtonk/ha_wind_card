@@ -497,7 +497,7 @@ class WindCard extends LitElement {
       const inner = this._polarToCartesian(50, 50, radius - len, angle);
       const color = this._speedToColor(d.wind);
       const opacity = i >= 50 ? 1 - (i - 50) / 10 : 1;
-      lines.push(svg`<path d="M ${inner.x},${inner.y} L ${outer.x},${outer.y}" stroke="${color}" stroke-width="3" stroke-linecap="round" opacity="${opacity}"></path>`);
+      lines.push(svg`<path d="M ${inner.x},${inner.y} L ${outer.x},${outer.y}" stroke="${color}" stroke-width="3" stroke-linecap="butt" opacity="${opacity}"></path>`);
     }
     return lines;
   }
@@ -532,8 +532,8 @@ class WindCard extends LitElement {
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + tickPath_radius - cardinal_offset}" y="50" font-size="11">E</text>
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 + tickPath_radius - cardinal_offset}" font-size="11">S</text>
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 - tickPath_radius + cardinal_offset}" y="50" font-size="11">W</text>
-              <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="round" stroke-opacity="1" d="${minorPath}"></path>
-              <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="round" stroke-opacity="1" d="${majorPath}"></path>
+              <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="butt" stroke-opacity="1" d="${minorPath}"></path>
+              <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="butt" stroke-opacity="1" d="${majorPath}"></path>
             </g>
             <g class="unit-labels">
               ${[5,10,15,20,25,30,35,40,45,50,55,60].map(v => {

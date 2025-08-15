@@ -65,9 +65,7 @@ class WindCard extends LitElement {
   }
 
   setConfig(config) {
-    if (!config.entity) {
-      throw new Error('Entity is required');
-    }
+
     if (!config.wind_entity || !config.gust_entity || !config.direction_entity) {
       this._noData = true;
       this._error = 'wind_entity, gust_entity and direction_entity must be set';

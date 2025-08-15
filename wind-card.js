@@ -60,8 +60,9 @@ class WindCard extends LitElement {
     this._dragging = false;
     this._boundPointerMove = this._onGlobalPointerMove.bind(this);
     this._boundPointerUp = this._onGlobalPointerUp.bind(this);
-    this._boundTouchMove = this._onGlobalTouchMove.bind(this);
-    this._boundTouchEnd = this._onGlobalTouchEnd.bind(this);
+    // Memoized unit label positions
+    this._unitPositions = null;
+    this._unitKey = '';
   }
 
   setConfig(config) {
@@ -233,6 +234,8 @@ class WindCard extends LitElement {
 
   _scheduleNextFetch() {
     if (!this.show_graph) return;
+    // Clear any pending timer before scheduling a new one
+    if (this._timeout) clearTimeout(this._timeout);
     this._fetchData();
     const now = new Date();
     const ms = 60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
@@ -245,7 +248,6 @@ class WindCard extends LitElement {
     const minutes = this.minutes;
     const now = new Date();
     now.setSeconds(0, 0);
-    now.setMinutes(now.getMinutes());
     const end = now.toISOString();
     const start = new Date(now.getTime() - minutes * 60000).toISOString();
     const ids = `${this.config.wind_entity},${this.config.gust_entity},${this.config.direction_entity}`;
@@ -256,39 +258,43 @@ class WindCard extends LitElement {
         `history/period/${start}?end_time=${end}&filter_entity_id=${ids}&minimal_response`
       );
 
-      const windHist = hist.find(h => Array.isArray(h) && h[0]?.entity_id === this.config.wind_entity) ?? [];
-      const gustHist = hist.find(h => Array.isArray(h) && h[0]?.entity_id === this.config.gust_entity) ?? [];
-      const dirHist = hist.find(h => Array.isArray(h) && h[0]?.entity_id === this.config.direction_entity) ?? [];
+      const byId = {};
+      for (const h of hist) {
+        if (Array.isArray(h) && h[0]?.entity_id) byId[h[0].entity_id] = h;
+      }
+      const windHist = byId[this.config.wind_entity] ?? [];
+      const gustHist = byId[this.config.gust_entity] ?? [];
+      const dirHist  = byId[this.config.direction_entity] ?? [];
 
       this._noData = !windHist.length && !gustHist.length && !dirHist.length;
 
-      const avgPerMinute = entries => {
+      const avgPerMinute = (entries) => {
         const map = {};
-        entries.forEach(e => {
-          const t = new Date(e.last_changed || e.last_updated);
-          const key = t.toISOString().slice(0, 16);
+        for (const e of entries) {
+          const ts = (e.last_changed || e.last_updated);
+          const key = typeof ts === 'string' ? ts.slice(0, 16) : new Date(ts).toISOString().slice(0, 16);
           const val = parseFloat(e.state);
-          if (!isFinite(val) || val < 0 || val > 100) return;
-          if (!map[key]) map[key] = { sum: 0, count: 0 };
-          map[key].sum += val;
-          map[key].count += 1;
-        });
+          if (!isFinite(val) || val < 0 || val > 100) continue;
+          const bucket = (map[key] ||= { sum: 0, count: 0 });
+          bucket.sum += val;
+          bucket.count += 1;
+        }
         return Object.keys(map).sort().map(k => ({ minute: k, avg: map[k].sum / map[k].count }));
       };
 
-      const avgVectorPerMinute = entries => {
+      const avgVectorPerMinute = (entries) => {
         const map = {};
-        entries.forEach(e => {
-          const t = new Date(e.last_changed || e.last_updated);
-          const key = t.toISOString().slice(0, 16);
+        for (const e of entries) {
+          const ts = (e.last_changed || e.last_updated);
+          const key = typeof ts === 'string' ? ts.slice(0, 16) : new Date(ts).toISOString().slice(0, 16);
           const val = parseFloat(e.state);
-          if (!isFinite(val)) return;
+          if (!isFinite(val)) continue;
           const rad = (val * Math.PI) / 180;
-          if (!map[key]) map[key] = { x: 0, y: 0, count: 0 };
-          map[key].x += Math.cos(rad);
-          map[key].y += Math.sin(rad);
-          map[key].count += 1;
-        });
+          const bucket = (map[key] ||= { x: 0, y: 0, count: 0 });
+          bucket.x += Math.cos(rad);
+          bucket.y += Math.sin(rad);
+          bucket.count += 1;
+        }
         return Object.keys(map).sort().map(k => {
           const d = map[k];
           const avgRad = Math.atan2(d.y / d.count, d.x / d.count);
@@ -354,10 +360,11 @@ class WindCard extends LitElement {
     const current = Array.isArray(this._data)
       ? [...this._data]
       : newData.map(() => ({ wind: 0, gust: 0, direction: 0 }));
+
     for (let i = newData.length - 1; i >= 0; i--) {
       current[i] = newData[i];
       this._data = [...current];
-      await new Promise(res => setTimeout(res, 50));
+      await new Promise(resolve => requestAnimationFrame(() => resolve()));
     }
   }
 
@@ -384,13 +391,8 @@ class WindCard extends LitElement {
       this._onBarEnter(data);
     }
     this._dragging = true;
-    if (e.type.startsWith('touch')) {
-      window.addEventListener('touchmove', this._boundTouchMove);
-      window.addEventListener('touchend', this._boundTouchEnd);
-    } else {
-      window.addEventListener('pointermove', this._boundPointerMove);
-      window.addEventListener('pointerup', this._boundPointerUp);
-    }
+    window.addEventListener('pointermove', this._boundPointerMove);
+    window.addEventListener('pointerup', this._boundPointerUp);
   }
 
   _onSegmentEnter(e) {
@@ -420,33 +422,21 @@ class WindCard extends LitElement {
     this._dragging = false;
     window.removeEventListener('pointermove', this._boundPointerMove);
     window.removeEventListener('pointerup', this._boundPointerUp);
-    window.removeEventListener('touchmove', this._boundTouchMove);
-    window.removeEventListener('touchend', this._boundTouchEnd);
     this._onBarLeave();
   }
 
-  _onGlobalTouchMove(e) {
-    if (!this._dragging) return;
-    const t = e.touches && e.touches[0];
-    if (!t) return;
-    const graph = this.renderRoot.querySelector('.graph');
-    if (!graph) return;
-    const target = this.renderRoot.elementFromPoint(t.clientX, t.clientY);
-    const segment = target?.closest('.wind-bar-segment');
-    if (segment && graph.contains(segment)) {
-      const idx = parseInt(segment.dataset.index);
-      const data = this._data[idx];
-      if (data) {
-        this._onBarEnter(data);
-      }
+
+  // Memoized calculation of unit label positions
+  _computeUnitPositions() {
+    const key = `${this.tickPath_radius}|${this.units_offset}`;
+    if (this._unitKey === key && Array.isArray(this._unitPositions)) {
+      return this._unitPositions;
     }
-  }
-
-  _onGlobalTouchEnd() {
-    this._dragging = false;
-    window.removeEventListener('touchmove', this._boundTouchMove);
-    window.removeEventListener('touchend', this._boundTouchEnd);
-    this._onBarLeave();
+    const values = [5,10,15,20,25,30,35,40,45,50,55,60];
+    const positions = values.map(v => this._polarToCartesian(50, 50, this.tickPath_radius + this.units_offset, v * 6));
+    this._unitKey = key;
+    this._unitPositions = positions;
+    return positions;
   }
 
   _renderBar({ wind, gust, direction }, index) {
@@ -464,10 +454,7 @@ class WindCard extends LitElement {
            @pointerdown=${(e) => this._onBarDown(e)}
            @pointerenter=${(e) => this._onSegmentEnter(e)}
            @pointermove=${(e) => this._onSegmentEnter(e)}
-           @pointerleave=${() => this._onBarLeave()}
-           @touchstart=${(e) => this._onBarDown(e)}
-           @touchmove=${(e) => this._onSegmentEnter(e)}
-           @touchend=${() => this._onBarLeave()}>
+           @pointerleave=${() => this._onBarLeave()}>
         <div class="bar-container">
           <div class="date-wind-bar-segment" style="background:${colorWind};height:${windHeight}px;width:100%;"></div>
           ${gustHeight > 0 ? html`<div class="date-gust-bar-segment" style="background:${colorGust};height:1px;margin-bottom:${gustHeight}px;width:100%;"></div>` : null}
@@ -512,10 +499,11 @@ class WindCard extends LitElement {
               <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="butt" stroke-opacity="1" d="${majorPath}"></path>
             </g>
             <g class="unit-labels">
-              ${[5,10,15,20,25,30,35,40,45,50,55,60].map(v => {
-                const p = this._polarToCartesian(50, 50, tickPath_radius + this.units_offset, v * 6);
-                return svg`<text x="${p.x}" y="${p.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">${v}</text>`;
-              })}
+              ${(() => {
+                const values = [5,10,15,20,25,30,35,40,45,50,55,60];
+                const pts = this._computeUnitPositions();
+                return pts.map((p, i) => svg`<text x="${p.x}" y="${p.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">${values[i]}</text>`);
+              })()}
             </g>
             <g class="indicators">
               <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="m 50,${tickPath_radius + 42} l 5,3 l -5,-12 l -5,12 z" fill="var(--primary-text-color, #212121)" stroke-width="0" style="transform: rotate(${this.direction + 180}deg);"></path>
@@ -625,6 +613,7 @@ class WindCard extends LitElement {
     .date-gust-bar-segment {
       display: inline-block;
       transition: height 0.6s ease, margin-bottom 0.6s ease, background-color 0.6s ease;
+      will-change: height, margin-bottom, background-color;
     }
     .footer {
       text-align: right;

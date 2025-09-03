@@ -1,6 +1,6 @@
 import { LitElement, svg, html, css } from 'https://unpkg.com/lit?module';
 import { repeat } from 'https://unpkg.com/lit/directives/repeat.js?module';
-
+//
 // Color scale used for wind and gust speeds. This mirrors the palette from
 // ha_wind_stat_card so both the gauge and graph use the same colours.
 const wsColors = [
@@ -63,6 +63,8 @@ class WindCard extends LitElement {
     // Memoized unit label positions
     this._unitPositions = null;
     this._unitKey = '';
+    // Time display state (updates every second unless hovering)
+    this._displayTime = new Date();
   }
 
   setConfig(config) {
@@ -144,6 +146,9 @@ class WindCard extends LitElement {
       this.windSpeed = 0;
       this.gust = 0;
       this.direction = 0;
+      if (!this._hoverData) {
+        this._displayTime = new Date();
+      }
       return;
     }
     if (this._hoverData) {
@@ -153,6 +158,7 @@ class WindCard extends LitElement {
       if (typeof frame.direction === 'number') {
         this.direction = this._shortestAngle(this.direction, frame.direction);
       }
+      // When hovering, keep showing the hovered time
       return;
     }
     if (!this._timeline || this._timeline.length === 0) return;
@@ -165,6 +171,8 @@ class WindCard extends LitElement {
       }
     }
     this._timelineIndex = (this._timelineIndex + 1) % this._timeline.length;
+    // Update time display to current time when not hovering
+    this._displayTime = new Date();
   }
 
   _shortestAngle(current, target) {
@@ -332,7 +340,7 @@ class WindCard extends LitElement {
         const direction = dirRaw;
 
         max = Math.max(max, Math.ceil(gustFinal / 5) * 5);
-        data.push({ wind: windFinal, gust: gustFinal, direction });
+        data.push({ wind: windFinal, gust: gustFinal, direction, time: mTime });
       }
 
       if (this._initialLoad) {
@@ -373,6 +381,9 @@ class WindCard extends LitElement {
     this.windSpeed = data.wind;
     this.gust = data.gust;
     this.direction = this._shortestAngle(this.direction, data.direction);
+    if (data.time) {
+      this._displayTime = new Date(data.time);
+    }
   }
 
   _onBarLeave() {
@@ -479,6 +490,14 @@ class WindCard extends LitElement {
     const windColor = this._speedToColor(this.windSpeed);
     const gustColor = this._addAlpha(this._speedToColor(this.gust), 0.5);
 
+    // Clock hands angles based on display time
+    const t = this._displayTime instanceof Date ? this._displayTime : new Date();
+    const hours = t.getHours();
+    const minutes = t.getMinutes();
+    const seconds = t.getSeconds();
+    const minuteAngle = 6 * (minutes + seconds / 60);
+    const hourAngle = 30 * ((hours % 12) + minutes / 60);
+
     return html`
       <ha-card>
         <div class="container" style="width:100%; height:${this.size}px;">
@@ -504,6 +523,14 @@ class WindCard extends LitElement {
                 const pts = this._computeUnitPositions();
                 return pts.map((p, i) => svg`<text x="${p.x}" y="${p.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">${values[i]}</text>`);
               })()}
+            </g>
+            <!-- Analog clock hands -->
+            <g class="clock">
+              <line class="clock-hand hour" x1="50" y1="50" x2="50" y2="40" stroke-width="1.8"
+                style="transform: rotate(${hourAngle}deg);"></line>
+              <line class="clock-hand minute" x1="50" y1="50" x2="50" y2="36" stroke-width="1.2"
+                style="transform: rotate(${minuteAngle}deg);"></line>
+              <circle cx="50" cy="50" r="0.8" class="clock-center" />
             </g>
             <g class="indicators">
               <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="m 50,${tickPath_radius + 42} l 5,3 l -5,-12 l -5,12 z" fill="var(--primary-text-color, #212121)" stroke-width="0" style="transform: rotate(${this.direction + 180}deg);"></path>
@@ -580,6 +607,16 @@ class WindCard extends LitElement {
     text {
       fill: var(--primary-text-color, #212121);
     }
+    .clock-hand {
+      stroke: var(--primary-text-color, #212121);
+      stroke-linecap: round;
+      transform-origin: 50% 50%;
+      transform-box: view-box;
+      opacity: 0.6;
+      transition: transform 0.4s linear;
+    }
+    .clock-hand.minute { opacity: 0.7; }
+    .clock-center { fill: var(--primary-text-color, #212121); opacity: 0.7; }
     .graph {
       display: flex;
       align-items: end;
@@ -630,4 +667,3 @@ class WindCard extends LitElement {
 }
 
 customElements.define('wind-card', WindCard);
-

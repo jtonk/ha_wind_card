@@ -29,6 +29,8 @@ class WindCard extends LitElement {
     hour_hand_end_radius: { type: Number },
     minute_hand_start_radius: { type: Number },
     minute_hand_end_radius: { type: Number },
+    second_hand_start_radius: { type: Number },
+    second_hand_end_radius: { type: Number },
     _timeline: { type: Array },
     _timelineIndex: { type: Number },
     _data: { state: true },
@@ -57,6 +59,8 @@ class WindCard extends LitElement {
     this.hour_hand_end_radius = 10;
     this.minute_hand_start_radius = 0;
     this.minute_hand_end_radius = 14;
+    this.second_hand_start_radius = 0;
+    this.second_hand_end_radius = 16;
     this._timeline = [];
     this._timelineIndex = 0;
 
@@ -78,6 +82,7 @@ class WindCard extends LitElement {
     // Internal, continuously increasing angles for shortest-path animation
     this._minuteAngle = undefined;
     this._hourAngle = undefined;
+    this._secondAngle = undefined;
   }
 
   setConfig(config) {
@@ -99,6 +104,8 @@ class WindCard extends LitElement {
     this.hour_hand_end_radius = Number(config.hour_hand_end_radius ?? 10);
     this.minute_hand_start_radius = Number(config.minute_hand_start_radius ?? 0);
     this.minute_hand_end_radius = Number(config.minute_hand_end_radius ?? 14);
+    this.second_hand_start_radius = Number(config.second_hand_start_radius ?? 0);
+    this.second_hand_end_radius = Number(config.second_hand_end_radius ?? 16);
     this.minutes = Number(config.minutes || 30);
     this.graph_height = Number(config.graph_height || 100);
     this.autoscale = config.autoscale !== false;
@@ -213,6 +220,7 @@ class WindCard extends LitElement {
     const seconds = t.getSeconds();
     const targetMinuteAngle = 6 * (minutes + seconds / 60);
     const targetHourAngle = 30 * ((hours % 12) + minutes / 60);
+    const targetSecondAngle = 6 * seconds;
     if (typeof this._minuteAngle !== 'number') {
       this._minuteAngle = targetMinuteAngle;
     } else {
@@ -222,6 +230,11 @@ class WindCard extends LitElement {
       this._hourAngle = targetHourAngle;
     } else {
       this._hourAngle = this._shortestAngle(this._hourAngle, targetHourAngle);
+    }
+    if (typeof this._secondAngle !== 'number') {
+      this._secondAngle = targetSecondAngle;
+    } else {
+      this._secondAngle = this._shortestAngle(this._secondAngle, targetSecondAngle);
     }
     // Ensure a render is scheduled even if no other reactive props changed
     this.requestUpdate();
@@ -555,16 +568,21 @@ class WindCard extends LitElement {
     // Clock hands angles (continuously increasing for shortest-path animation)
     const minuteAngle = typeof this._minuteAngle === 'number' ? this._minuteAngle : 0;
     const hourAngle = typeof this._hourAngle === 'number' ? this._hourAngle : 0;
+    const secondAngle = typeof this._secondAngle === 'number' ? this._secondAngle : 0;
 
     // Compute clock hand geometry from configured radii
     const hrStart = Math.max(0, Number(this.hour_hand_start_radius || 0));
     const hrEnd = Math.max(hrStart, Number(this.hour_hand_end_radius || 10));
     const mnStart = Math.max(0, Number(this.minute_hand_start_radius || 0));
     const mnEnd = Math.max(mnStart, Number(this.minute_hand_end_radius || 14));
+    const scStart = Math.max(0, Number(this.second_hand_start_radius || 0));
+    const scEnd = Math.max(scStart, Number(this.second_hand_end_radius || 16));
     const hourY1 = 50 - hrStart;
     const hourY2 = 50 - hrEnd;
     const minuteY1 = 50 - mnStart;
     const minuteY2 = 50 - mnEnd;
+    const secondY1 = 50 - scStart;
+    const secondY2 = 50 - scEnd;
 
     return html`
       <ha-card>
@@ -598,6 +616,8 @@ class WindCard extends LitElement {
                 style="transform: rotate(${hourAngle}deg);"></line>
               <line class="clock-hand minute" x1="50" y1="${minuteY1}" x2="50" y2="${minuteY2}" stroke-width="1.2"
                 style="transform: rotate(${minuteAngle}deg);"></line>
+              <line class="clock-hand second" x1="50" y1="${secondY1}" x2="50" y2="${secondY2}" stroke-width="0.8"
+                style="transform: rotate(${secondAngle}deg);"></line>
               <circle cx="50" cy="50" r="0.8" class="clock-center" />
             </g>
             <g class="indicators">
@@ -684,6 +704,7 @@ class WindCard extends LitElement {
       transition: transform 0.4s linear;
     }
     .clock-hand.minute { opacity: 0.7; }
+    .clock-hand.second { opacity: 0.8; }
     .clock-center { fill: var(--primary-text-color, #212121); opacity: 0.7; }
     .graph {
       display: flex;

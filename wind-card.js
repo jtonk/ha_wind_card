@@ -491,6 +491,13 @@ class WindCard extends LitElement {
     this._onBarLeave();
   }
 
+  _onGraphLeave(e) {
+    // Leaving the graph area entirely: clear hover and revert to live values
+    this._hoverData = null;
+    this._dragging = false;
+    this._animateFromTimeline();
+  }
+
 
   // Memoized calculation of unit label positions
   _computeUnitPositions() {
@@ -563,7 +570,7 @@ class WindCard extends LitElement {
       <ha-card>
         <div class="container" style="width:100%; height:${this.size}px;">
           ${this.show_graph && !this._noData ? html`
-            <div class="graph graph-behind" style="height:${this.graph_height}px">
+            <div class="graph graph-behind" style="height:${this.graph_height}px" @pointerleave=${(e) => this._onGraphLeave(e)}>
               ${repeat(this._data, (_d, index) => index, (d, index) => this._renderBar(d, index))}
             </div>
           ` : ''}
@@ -633,9 +640,9 @@ class WindCard extends LitElement {
     }
     .graph-behind {
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
+      left: 0; right: 0; bottom: 0;
       width: 100%;
-      height: 100%;
+      /* height is set inline via style="height:...px" */
       z-index: 1;
       display: flex;
       align-items: end;

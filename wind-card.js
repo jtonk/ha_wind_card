@@ -434,7 +434,14 @@ class WindCard extends LitElement {
     }
   }
 
-  _onBarLeave() {
+  _onBarLeave(e) {
+    // If moving within the graph between segments, do not clear hover state
+    if (e && e.relatedTarget) {
+      const graph = this.renderRoot.querySelector('.graph');
+      if (graph && graph.contains(e.relatedTarget)) {
+        return;
+      }
+    }
     this._hoverData = null;
     this._animateFromTimeline();
   }
@@ -513,7 +520,7 @@ class WindCard extends LitElement {
            @pointerdown=${(e) => this._onBarDown(e)}
            @pointerenter=${(e) => this._onSegmentEnter(e)}
            @pointermove=${(e) => this._onSegmentEnter(e)}
-           @pointerleave=${() => this._onBarLeave()}>
+           @pointerleave=${(e) => this._onBarLeave(e)}>
         <div class="bar-container">
           <div class="date-wind-bar-segment" style="background:${colorWind};height:${windHeight}px;width:100%;"></div>
           ${gustHeight > 0 ? html`<div class="date-gust-bar-segment" style="background:${colorGust};height:1px;margin-bottom:${gustHeight}px;width:100%;"></div>` : null}

@@ -24,13 +24,6 @@ class WindCard extends LitElement {
     tickPath_radius: { type: Number },
     tickPath_width: { type: Number },
     units_offset: { type: Number },
-    // Clock hand configuration
-    hour_hand_start_radius: { type: Number },
-    hour_hand_end_radius: { type: Number },
-    minute_hand_start_radius: { type: Number },
-    minute_hand_end_radius: { type: Number },
-    second_hand_start_radius: { type: Number },
-    second_hand_end_radius: { type: Number },
     _timeline: { type: Array },
     _timelineIndex: { type: Number },
     _data: { state: true },
@@ -54,13 +47,6 @@ class WindCard extends LitElement {
     this.tickPath_radius = 38;
     this.tickPath_width = 4;
     this.units_offset = 4;
-    // Default clock hand radii (from center)
-    this.hour_hand_start_radius = 0;
-    this.hour_hand_end_radius = 10;
-    this.minute_hand_start_radius = 0;
-    this.minute_hand_end_radius = 14;
-    this.second_hand_start_radius = 0;
-    this.second_hand_end_radius = 16;
     this._timeline = [];
     this._timelineIndex = 0;
 
@@ -77,12 +63,6 @@ class WindCard extends LitElement {
     // Memoized unit label positions
     this._unitPositions = null;
     this._unitKey = '';
-    // Time display state (updates every second unless hovering)
-    this._displayTime = new Date();
-    // Internal, continuously increasing angles for shortest-path animation
-    this._minuteAngle = undefined;
-    this._hourAngle = undefined;
-    this._secondAngle = undefined;
   }
 
   setConfig(config) {
@@ -99,13 +79,6 @@ class WindCard extends LitElement {
     this.tickPath_radius = Number(config.tickPath_radius || 38);
     this.tickPath_width = Number(config.tickPath_width || 4);
     this.units_offset = Number(config.units_offset || 4);
-    // Clock hand radius configuration (in SVG units from the center)
-    this.hour_hand_start_radius = Number(config.hour_hand_start_radius ?? 0);
-    this.hour_hand_end_radius = Number(config.hour_hand_end_radius ?? 10);
-    this.minute_hand_start_radius = Number(config.minute_hand_start_radius ?? 0);
-    this.minute_hand_end_radius = Number(config.minute_hand_end_radius ?? 14);
-    this.second_hand_start_radius = Number(config.second_hand_start_radius ?? 0);
-    this.second_hand_end_radius = Number(config.second_hand_end_radius ?? 16);
     this.minutes = Number(config.minutes || 30);
     this.graph_height = Number(config.graph_height || 100);
     this.autoscale = config.autoscale !== false;
@@ -124,8 +97,6 @@ class WindCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    // Seed clock angles immediately
-    this._updateClockAngles();
     this._animInterval = setInterval(() => this._animateFromTimeline(), 1000);
     if (this.show_graph) {
       this._scheduleNextFetch();
@@ -173,11 +144,6 @@ class WindCard extends LitElement {
       this.windSpeed = 0;
       this.gust = 0;
       this.direction = 0;
-      if (!this._hoverData) {
-        this._displayTime = new Date();
-      }
-      // Update clock hands even if data isn't live
-      this._updateClockAngles();
       return;
     }
     if (this._hoverData) {
@@ -187,8 +153,6 @@ class WindCard extends LitElement {
       if (typeof frame.direction === 'number') {
         this.direction = this._shortestAngle(this.direction, frame.direction);
       }
-      // When hovering, keep showing the hovered time
-      this._updateClockAngles();
       return;
     }
     if (!this._timeline || this._timeline.length === 0) return;
@@ -201,43 +165,12 @@ class WindCard extends LitElement {
       }
     }
     this._timelineIndex = (this._timelineIndex + 1) % this._timeline.length;
-    // Update time display to current time when not hovering
-    this._displayTime = new Date();
-    this._updateClockAngles();
   }
 
   _shortestAngle(current, target) {
     if (typeof current !== 'number') return target;
     const diff = ((target - current + 540) % 360) - 180;
     return current + diff;
-  }
-
-  // Update internal clock angles following the shortest rotation path
-  _updateClockAngles() {
-    const t = this._displayTime instanceof Date ? this._displayTime : new Date();
-    const hours = t.getHours();
-    const minutes = t.getMinutes();
-    const seconds = t.getSeconds();
-    const targetMinuteAngle = 6 * (minutes + seconds / 60);
-    const targetHourAngle = 30 * ((hours % 12) + minutes / 60);
-    const targetSecondAngle = 6 * seconds;
-    if (typeof this._minuteAngle !== 'number') {
-      this._minuteAngle = targetMinuteAngle;
-    } else {
-      this._minuteAngle = this._shortestAngle(this._minuteAngle, targetMinuteAngle);
-    }
-    if (typeof this._hourAngle !== 'number') {
-      this._hourAngle = targetHourAngle;
-    } else {
-      this._hourAngle = this._shortestAngle(this._hourAngle, targetHourAngle);
-    }
-    if (typeof this._secondAngle !== 'number') {
-      this._secondAngle = targetSecondAngle;
-    } else {
-      this._secondAngle = this._shortestAngle(this._secondAngle, targetSecondAngle);
-    }
-    // Ensure a render is scheduled even if no other reactive props changed
-    this.requestUpdate();
   }
 
   _polarToCartesian(cx, cy, r, angleDeg) {
@@ -440,11 +373,6 @@ class WindCard extends LitElement {
     this.windSpeed = data.wind;
     this.gust = data.gust;
     this.direction = this._shortestAngle(this.direction, data.direction);
-    if (data.time) {
-      this._displayTime = new Date(data.time);
-      // Update clock hands immediately for hover feedback
-      this._updateClockAngles();
-    }
   }
 
   _onBarLeave(e) {
@@ -564,25 +492,11 @@ class WindCard extends LitElement {
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
     const windColor = this._speedToColor(this.windSpeed);
     const gustColor = this._addAlpha(this._speedToColor(this.gust), 0.5);
-
-    // Clock hands angles (continuously increasing for shortest-path animation)
-    const minuteAngle = typeof this._minuteAngle === 'number' ? this._minuteAngle : 0;
-    const hourAngle = typeof this._hourAngle === 'number' ? this._hourAngle : 0;
-    const secondAngle = typeof this._secondAngle === 'number' ? this._secondAngle : 0;
-
-    // Compute clock hand geometry from configured radii
-    const hrStart = Math.max(0, Number(this.hour_hand_start_radius || 0));
-    const hrEnd = Math.max(hrStart, Number(this.hour_hand_end_radius || 10));
-    const mnStart = Math.max(0, Number(this.minute_hand_start_radius || 0));
-    const mnEnd = Math.max(mnStart, Number(this.minute_hand_end_radius || 14));
-    const scStart = Math.max(0, Number(this.second_hand_start_radius || 0));
-    const scEnd = Math.max(scStart, Number(this.second_hand_end_radius || 16));
-    const hourY1 = 50 - hrStart;
-    const hourY2 = 50 - hrEnd;
-    const minuteY1 = 50 - mnStart;
-    const minuteY2 = 50 - mnEnd;
-    const secondY1 = 50 - scStart;
-    const secondY2 = 50 - scEnd;
+    const hoverTime = this._hoverData?.time ? new Date(this._hoverData.time) : null;
+    const hoverMinuteAngle = hoverTime && Number.isFinite(hoverTime.getTime()) ? hoverTime.getMinutes() * 6 : null;
+    const hoverMinutePos = hoverMinuteAngle !== null
+      ? this._polarToCartesian(50, 50, tickPath_radius, hoverMinuteAngle)
+      : null;
 
     return html`
       <ha-card>
@@ -610,16 +524,11 @@ class WindCard extends LitElement {
                 return pts.map((p, i) => svg`<text x="${p.x}" y="${p.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">${values[i]}</text>`);
               })()}
             </g>
-            <!-- Analog clock hands -->
-            <g class="clock">
-              <line class="clock-hand hour" x1="50" y1="${hourY1}" x2="50" y2="${hourY2}" stroke-width="1.8"
-                style="transform: rotate(${hourAngle}deg);"></line>
-              <line class="clock-hand minute" x1="50" y1="${minuteY1}" x2="50" y2="${minuteY2}" stroke-width="1.2"
-                style="transform: rotate(${minuteAngle}deg);"></line>
-              <line class="clock-hand second" x1="50" y1="${secondY1}" x2="50" y2="${secondY2}" stroke-width="0.8"
-                style="transform: rotate(${secondAngle}deg);"></line>
-              <circle cx="50" cy="50" r="0.8" class="clock-center" />
-            </g>
+            ${hoverMinutePos ? svg`
+              <g class="hover-minute-dot" transform="translate(${hoverMinutePos.x} ${hoverMinutePos.y})">
+                <circle r="1.6"></circle>
+              </g>
+            ` : null}
             <g class="indicators">
               <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="m 50,${tickPath_radius + 42} l 5,3 l -5,-12 l -5,12 z" fill="var(--primary-text-color, #212121)" stroke-width="0" style="transform: rotate(${this.direction + 180}deg);"></path>
             </g>
@@ -695,17 +604,11 @@ class WindCard extends LitElement {
     text {
       fill: var(--primary-text-color, #212121);
     }
-    .clock-hand {
-      stroke: var(--primary-text-color, #212121);
-      stroke-linecap: round;
-      transform-origin: 50% 50%;
-      transform-box: view-box;
-      opacity: 0.6;
-      transition: transform 0.4s linear;
+    .hover-minute-dot circle {
+      fill: var(--primary-text-color, #212121);
+      stroke: var(--card-background-color, white);
+      stroke-width: 0.6;
     }
-    .clock-hand.minute { opacity: 0.7; }
-    .clock-hand.second { opacity: 0.8; }
-    .clock-center { fill: var(--primary-text-color, #212121); opacity: 0.7; }
     .graph {
       display: flex;
       align-items: end;

@@ -58,6 +58,7 @@ class WindCard extends LitElement {
     this.show_graph = true;
     this._hoverData = null;
     this._dragging = false;
+    this._lastTimelineUpdate = null;
     this._boundPointerMove = this._onGlobalPointerMove.bind(this);
     this._boundPointerUp = this._onGlobalPointerUp.bind(this);
     // Memoized unit label positions
@@ -122,6 +123,8 @@ class WindCard extends LitElement {
     if (!this._hass || !this.config) return;
     const stateObj = this._hass.states[this.config.entity];
     if (!stateObj?.attributes?.data) return;
+    const lastUpdate = (stateObj.last_updated || stateObj.last_changed || '').toString();
+    if (this._lastTimelineUpdate === lastUpdate) return;
 
     const data = stateObj.attributes.data;
     const dirs = Array.isArray(data.direction) ? data.direction : [];
@@ -137,6 +140,7 @@ class WindCard extends LitElement {
       });
     }
     this._timelineIndex = 0;
+    this._lastTimelineUpdate = lastUpdate;
   }
 
   _animateFromTimeline() {

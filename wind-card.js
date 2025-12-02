@@ -512,7 +512,7 @@ class WindCard extends LitElement {
     });
 
     return svg`<g class="history-radial">
-      ${repeat(slots, (slot) => slot.minute, (slot) => {
+      ${repeat(slots, (slot) => slot.minute, (slot, idx) => {
         const d = minuteData[slot.minute];
         const angle = slot.angle;
         const windVal = Number.isFinite(d?.wind) ? d.wind : 0;
@@ -525,6 +525,7 @@ class WindCard extends LitElement {
         const gustExtra = Math.max(gustSpan - windSpan, 0);
         const colorWind = this._speedToColor(windVal);
         const colorGust = this._speedToColor(gustVal);
+        const delay = (slots.length - 1 - idx) * 0.025;
         return svg`<g class="history-minute" data-minute="${slot.minute}" id="history-minute-${slot.minute}">
           <line
             class="history-line-dash wind"
@@ -532,7 +533,7 @@ class WindCard extends LitElement {
             x1="${start.x}" y1="${start.y}"
             x2="${center.x}" y2="${center.y}"
             stroke="${colorWind}"
-            style="--dash:${(windVal > 0 ? windSpan : 0).toFixed(2)};--dash-gap:100;--dash-offset:0;"
+            style="--dash:${(windVal > 0 ? windSpan : 0).toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay}s;"
           ></line>
           ${gustExtra > 0 ? svg`<line
             class="history-line-dash gust"
@@ -540,7 +541,7 @@ class WindCard extends LitElement {
             x1="${start.x}" y1="${start.y}"
             x2="${center.x}" y2="${center.y}"
             stroke="${colorGust}"
-            style="--dash:${Math.max(gustExtra, 0.8).toFixed(2)};--dash-gap:100;--dash-offset:${windSpan.toFixed(2)};"
+            style="--dash:${Math.max(gustExtra, 0.8).toFixed(2)};--dash-gap:100;--dash-offset:${windSpan.toFixed(2)};--dash-delay:${delay + 0.05}s;"
           ></line>` : null}
         </g>`;
       })}
@@ -581,6 +582,7 @@ class WindCard extends LitElement {
 
     const windColor = this._speedToColor(windVal);
     const gustColor = this._speedToColor(gustVal);
+    const delay = 0; // start animating current immediately
 
     return svg`<g class="current-marker" data-minute="${minute}" id="current-minute-marker">
       <line
@@ -588,14 +590,14 @@ class WindCard extends LitElement {
         x1="${start.x}" y1="${start.y}"
         x2="50" y2="50"
         stroke="${windColor}"
-        style="--dash:${windDashLength.toFixed(2)};--dash-gap:100;--dash-offset:0;"
+        style="--dash:${windDashLength.toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay}s;--dash-duration:0.5s;"
       ></line>
       ${gustExtra > 0 ? svg`<line
         class="current-line-dash gust"
         x1="${start.x}" y1="${start.y}"
         x2="50" y2="50"
         stroke="${gustColor}"
-        style="--dash:${Math.max(gustExtra, 0.8).toFixed(2)};--dash-gap:100;--dash-offset:${windDashLength.toFixed(2)};"
+        style="--dash:${Math.max(gustExtra, 0.8).toFixed(2)};--dash-gap:100;--dash-offset:${windDashLength.toFixed(2)};--dash-delay:${delay + 0.05}s;--dash-duration:0.5s;"
       ></line>` : null}
     </g>`;
   }
@@ -766,10 +768,10 @@ class WindCard extends LitElement {
     .history-line-dash {
       stroke-width: 2;
       stroke-linecap: round;
-      stroke-dasharray: calc(var(--dash, 0) + var(--dash-jitter, 0)) var(--dash-gap, 100);
+      stroke-dasharray: 0 var(--dash-gap, 100);
       stroke-dashoffset: var(--dash-offset, 0);
-      transition: stroke 0.4s ease, stroke-dasharray 0.4s ease;
-      animation: dashPulse 2.8s ease-in-out infinite;
+      animation: dashGrow var(--dash-duration, 0.6s) ease-out forwards;
+      animation-delay: var(--dash-delay, 0s);
     }
     .current-marker {
       pointer-events: none;
@@ -777,14 +779,14 @@ class WindCard extends LitElement {
     .current-marker .current-line-dash {
       stroke-width: 2.6;
       stroke-linecap: round;
-      stroke-dasharray: calc(var(--dash, 0) + var(--dash-jitter, 0)) var(--dash-gap, 100);
+      stroke-dasharray: 0 var(--dash-gap, 100);
       stroke-dashoffset: var(--dash-offset, 0);
-      animation: dashPulse 2s ease-in-out infinite;
+      animation: dashGrow var(--dash-duration, 0.6s) ease-out forwards;
+      animation-delay: var(--dash-delay, 0s);
     }
-    @keyframes dashPulse {
-      0% { --dash-jitter: 0; }
-      50% { --dash-jitter: 1.2; }
-      100% { --dash-jitter: 0; }
+    @keyframes dashGrow {
+      from { stroke-dasharray: 0 var(--dash-gap, 100); }
+      to { stroke-dasharray: var(--dash, 0) var(--dash-gap, 100); }
     }
     .graph {
       display: flex;

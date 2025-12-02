@@ -532,7 +532,7 @@ class WindCard extends LitElement {
             x1="${start.x}" y1="${start.y}"
             x2="${center.x}" y2="${center.y}"
             stroke="${colorWind}"
-            stroke-dasharray="${windVal > 0 ? windSpan.toFixed(2) : 0} 100"
+            style="--dash:${(windVal > 0 ? windSpan : 0).toFixed(2)};--dash-gap:100;--dash-offset:0;"
           ></line>
           ${gustExtra > 0 ? svg`<line
             class="history-line-dash gust"
@@ -540,7 +540,7 @@ class WindCard extends LitElement {
             x1="${start.x}" y1="${start.y}"
             x2="${center.x}" y2="${center.y}"
             stroke="${colorGust}"
-            stroke-dasharray="0 ${windSpan.toFixed(2)} ${Math.max(gustExtra, 0.8).toFixed(2)} 100"
+            style="--dash:${Math.max(gustExtra, 0.8).toFixed(2)};--dash-gap:100;--dash-offset:${windSpan.toFixed(2)};"
           ></line>` : null}
         </g>`;
       })}
@@ -588,14 +588,14 @@ class WindCard extends LitElement {
         x1="${start.x}" y1="${start.y}"
         x2="50" y2="50"
         stroke="${windColor}"
-        stroke-dasharray="${windDashLength.toFixed(2)} 100"
+        style="--dash:${windDashLength.toFixed(2)};--dash-gap:100;--dash-offset:0;"
       ></line>
       ${gustExtra > 0 ? svg`<line
         class="current-line-dash gust"
         x1="${start.x}" y1="${start.y}"
         x2="50" y2="50"
         stroke="${gustColor}"
-        stroke-dasharray="0 ${windDashLength.toFixed(2)} ${Math.max(gustExtra, 0.8).toFixed(2)} 100"
+        style="--dash:${Math.max(gustExtra, 0.8).toFixed(2)};--dash-gap:100;--dash-offset:${windDashLength.toFixed(2)};"
       ></line>` : null}
     </g>`;
   }
@@ -766,7 +766,10 @@ class WindCard extends LitElement {
     .history-line-dash {
       stroke-width: 2;
       stroke-linecap: round;
+      stroke-dasharray: calc(var(--dash, 0) + var(--dash-jitter, 0)) var(--dash-gap, 100);
+      stroke-dashoffset: var(--dash-offset, 0);
       transition: stroke 0.4s ease, stroke-dasharray 0.4s ease;
+      animation: dashPulse 2.8s ease-in-out infinite;
     }
     .current-marker {
       pointer-events: none;
@@ -774,6 +777,14 @@ class WindCard extends LitElement {
     .current-marker .current-line-dash {
       stroke-width: 2.6;
       stroke-linecap: round;
+      stroke-dasharray: calc(var(--dash, 0) + var(--dash-jitter, 0)) var(--dash-gap, 100);
+      stroke-dashoffset: var(--dash-offset, 0);
+      animation: dashPulse 2s ease-in-out infinite;
+    }
+    @keyframes dashPulse {
+      0% { --dash-jitter: 0; }
+      50% { --dash-jitter: 1.2; }
+      100% { --dash-jitter: 0; }
     }
     .graph {
       display: flex;

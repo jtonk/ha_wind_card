@@ -491,49 +491,72 @@ class WindCard extends LitElement {
     }), 1);
     const scale = this.autoscale ? windScale : 60;
     const center = { x: 50, y: 50 };
+    const now = new Date();
+
+    // Build stable minute slots keyed by minute-of-hour to avoid reshuffling nodes
+    const slots = Array.from({ length: 60 }).map((_, idx) => {
+      const t = new Date(now.getTime() - (59 - idx) * 60000);
+      t.setSeconds(0, 0);
+      const m = t.getMinutes();
+      return { minute: m, angle: m * 6 };
+    });
+
+    const minuteData = {};
+    this._historyData.forEach(d => {
+      const t = d.time ? new Date(d.time) : null;
+      if (!t || !Number.isFinite(t.getTime())) return;
+      minuteData[t.getMinutes()] = d;
+    });
 
     return svg`<g class="history-radial">
-      ${this._historyData.slice(-60).map((d, i) => {
-        const t = d.time ? new Date(d.time) : null;
-        const angle = t && Number.isFinite(t.getTime())
-          ? (t.getMinutes() * 6)
-          : ((this._historyData.length - 1 - i) * 6) % 360;
-        const windVal = Number.isFinite(d.wind) ? d.wind : 0;
-        const gustVal = Number.isFinite(d.gust) ? d.gust : windVal;
+      ${repeat(slots, (slot) => slot.minute, (slot) => {
+        const d = minuteData[slot.minute];
+        const angle = slot.angle;
+        const windVal = Number.isFinite(d?.wind) ? d.wind : 0;
+        const gustVal = Number.isFinite(d?.gust) ? d.gust : windVal;
         const windFactor = Math.min(1, Math.max(0, windVal / (scale || 1)));
         const gustFactor = Math.min(1, Math.max(0, gustVal / (scale || 1)));
         const windSpan = minSpan + windFactor * (maxSpan - minSpan);
         const gustSpan = minSpan + gustFactor * (maxSpan - minSpan);
         const start = this._polarToCartesian(50, 50, outerR, angle);
+        const gustExtra = Math.max(gustSpan - windSpan, 0);
+        const gustStart = this._polarToCartesian(50, 50, outerR - windSpan, angle);
+        const gustEnd = this._polarToCartesian(50, 50, outerR - Math.max(gustSpan, windSpan), angle);
         const colorWind = this._speedToColor(windVal);
         const colorGust = this._speedToColor(gustVal);
-        return svg`<g class="history-minute">
+        const baseWind = this._addAlpha(colorWind, 0.28);
+        const baseGust = this._addAlpha(colorGust, 0.18);
+        return svg`<g class="history-minute" data-minute="${slot.minute}" id="history-minute-${slot.minute}">
           <line
             class="history-line-base wind"
+            data-minute="${slot.minute}"
             x1="${start.x}" y1="${start.y}"
             x2="${center.x}" y2="${center.y}"
-            stroke="${colorWind}"
+            stroke="${baseWind}"
           ></line>
           <line
             class="history-line-base gust"
+            data-minute="${slot.minute}"
             x1="${start.x}" y1="${start.y}"
             x2="${center.x}" y2="${center.y}"
-            stroke="${colorGust}"
+            stroke="${baseGust}"
           ></line>
           <line
             class="history-line-dash wind"
+            data-minute="${slot.minute}"
             x1="${start.x}" y1="${start.y}"
             x2="${center.x}" y2="${center.y}"
             stroke="${colorWind}"
-            stroke-dasharray="${windSpan.toFixed(2)} 100"
+            stroke-dasharray="${windVal > 0 ? windSpan.toFixed(2) : 0} 100"
           ></line>
-          <line
+          ${gustExtra > 0 ? svg`<line
             class="history-line-dash gust"
-            x1="${start.x}" y1="${start.y}"
-            x2="${center.x}" y2="${center.y}"
+            data-minute="${slot.minute}"
+            x1="${gustStart.x}" y1="${gustStart.y}"
+            x2="${gustEnd.x}" y2="${gustEnd.y}"
             stroke="${colorGust}"
-            stroke-dasharray="${gustSpan.toFixed(2)} 100"
-          ></line>
+            stroke-dasharray="${gustExtra.toFixed(2)} 100"
+          ></line>` : null}
         </g>`;
       })}
     </g>`;
@@ -544,7 +567,8 @@ class WindCard extends LitElement {
     const maxSpan = Math.max(4, Math.min(18, outerR - 16));
     const minSpan = 1.5;
     const now = new Date();
-    const angle = now.getMinutes() * 6;
+    const minute = now.getMinutes();
+    const angle = minute * 6;
 
     const windVal = Math.max(0, Number.isFinite(this.windSpeed) ? this.windSpeed : 0);
     const gustVal = Math.max(windVal, Number.isFinite(this.gust) ? this.gust : windVal);
@@ -565,39 +589,45 @@ class WindCard extends LitElement {
 
     const windSpan = minSpan + windFactor * (maxSpan - minSpan);
     const gustSpan = minSpan + gustFactor * (maxSpan - minSpan);
+    const windDashLength = windVal > 0 ? windSpan : 0;
+    const gustExtra = Math.max(gustSpan - windSpan, 0);
 
     const start = this._polarToCartesian(50, 50, outerR, angle);
+    const gustStart = this._polarToCartesian(50, 50, outerR - windSpan, angle);
+    const gustEnd = this._polarToCartesian(50, 50, outerR - Math.max(gustSpan, windSpan), angle);
 
     const windColor = this._speedToColor(windVal);
     const gustColor = this._speedToColor(gustVal);
+    const baseWind = this._addAlpha(windColor, 0.32);
+    const baseGust = this._addAlpha(gustColor, 0.22);
 
-    return svg`<g class="current-marker">
+    return svg`<g class="current-marker" data-minute="${minute}" id="current-minute-marker">
       <line
         class="current-line-base wind"
         x1="${start.x}" y1="${start.y}"
         x2="50" y2="50"
-        stroke="${windColor}"
+        stroke="${baseWind}"
       ></line>
       <line
         class="current-line-base gust"
         x1="${start.x}" y1="${start.y}"
         x2="50" y2="50"
-        stroke="${gustColor}"
+        stroke="${baseGust}"
       ></line>
       <line
         class="current-line-dash wind"
         x1="${start.x}" y1="${start.y}"
         x2="50" y2="50"
         stroke="${windColor}"
-        stroke-dasharray="${windSpan.toFixed(2)} 100"
+        stroke-dasharray="${windDashLength.toFixed(2)} 100"
       ></line>
-      <line
+      ${gustExtra > 0 ? svg`<line
         class="current-line-dash gust"
-        x1="${start.x}" y1="${start.y}"
-        x2="50" y2="50"
+        x1="${gustStart.x}" y1="${gustStart.y}"
+        x2="${gustEnd.x}" y2="${gustEnd.y}"
         stroke="${gustColor}"
-        stroke-dasharray="${gustSpan.toFixed(2)} 100"
-      ></line>
+        stroke-dasharray="${gustExtra.toFixed(2)} 100"
+      ></line>` : null}
     </g>`;
   }
 

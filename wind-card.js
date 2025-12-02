@@ -484,8 +484,13 @@ class WindCard extends LitElement {
     const outerR = this.tickPath_radius;
     const maxSpan = Math.max(4, Math.min(18, outerR - 16));
     const minSpan = 1.5;
-    const windScale = Math.max(...this._historyData.map(d => Number.isFinite(d.wind) ? d.wind : 0), 1);
+    const windScale = Math.max(...this._historyData.map(d => {
+      const w = Number.isFinite(d.wind) ? d.wind : 0;
+      const g = Number.isFinite(d.gust) ? d.gust : w;
+      return Math.max(w, g);
+    }), 1);
     const scale = this.autoscale ? windScale : 60;
+    const center = { x: 50, y: 50 };
 
     return svg`<g class="history-radial">
       ${this._historyData.slice(-60).map((d, i) => {
@@ -494,20 +499,105 @@ class WindCard extends LitElement {
           ? (t.getMinutes() * 6)
           : ((this._historyData.length - 1 - i) * 6) % 360;
         const windVal = Number.isFinite(d.wind) ? d.wind : 0;
-        const factor = Math.min(1, Math.max(0, windVal / (scale || 1)));
-        const span = minSpan + factor * (maxSpan - minSpan);
+        const gustVal = Number.isFinite(d.gust) ? d.gust : windVal;
+        const windFactor = Math.min(1, Math.max(0, windVal / (scale || 1)));
+        const gustFactor = Math.min(1, Math.max(0, gustVal / (scale || 1)));
+        const windSpan = minSpan + windFactor * (maxSpan - minSpan);
+        const gustSpan = minSpan + gustFactor * (maxSpan - minSpan);
         const start = this._polarToCartesian(50, 50, outerR, angle);
-        const end = this._polarToCartesian(50, 50, outerR - span, angle);
-        const color = this._speedToColor(windVal);
-        const dash = Math.max(1, span - 0.5).toFixed(2);
-        return svg`<line
-          class="history-line"
-          x1="${start.x}" y1="${start.y}"
-          x2="${end.x}" y2="${end.y}"
-          stroke="${color}"
-          stroke-dasharray="${dash} 100"
-        ></line>`;
+        const colorWind = this._speedToColor(windVal);
+        const colorGust = this._speedToColor(gustVal);
+        return svg`<g class="history-minute">
+          <line
+            class="history-line-base wind"
+            x1="${start.x}" y1="${start.y}"
+            x2="${center.x}" y2="${center.y}"
+            stroke="${colorWind}"
+          ></line>
+          <line
+            class="history-line-base gust"
+            x1="${start.x}" y1="${start.y}"
+            x2="${center.x}" y2="${center.y}"
+            stroke="${colorGust}"
+          ></line>
+          <line
+            class="history-line-dash wind"
+            x1="${start.x}" y1="${start.y}"
+            x2="${center.x}" y2="${center.y}"
+            stroke="${colorWind}"
+            stroke-dasharray="${windSpan.toFixed(2)} 100"
+          ></line>
+          <line
+            class="history-line-dash gust"
+            x1="${start.x}" y1="${start.y}"
+            x2="${center.x}" y2="${center.y}"
+            stroke="${colorGust}"
+            stroke-dasharray="${gustSpan.toFixed(2)} 100"
+          ></line>
+        </g>`;
       })}
+    </g>`;
+  }
+
+  _renderCurrentRadialMarker() {
+    const outerR = this.tickPath_radius;
+    const maxSpan = Math.max(4, Math.min(18, outerR - 16));
+    const minSpan = 1.5;
+    const now = new Date();
+    const angle = now.getMinutes() * 6;
+
+    const windVal = Math.max(0, Number.isFinite(this.windSpeed) ? this.windSpeed : 0);
+    const gustVal = Math.max(windVal, Number.isFinite(this.gust) ? this.gust : windVal);
+
+    const historyMax = Array.isArray(this._historyData) && this._historyData.length
+      ? Math.max(...this._historyData.map(d => Math.max(
+          Number.isFinite(d.wind) ? d.wind : 0,
+          Number.isFinite(d.gust) ? d.gust : 0
+        )))
+      : 0;
+
+    const scale = this.autoscale
+      ? Math.max(historyMax, windVal, gustVal, 1)
+      : 60;
+
+    const windFactor = Math.min(1, Math.max(0, windVal / (scale || 1)));
+    const gustFactor = Math.min(1, Math.max(0, gustVal / (scale || 1)));
+
+    const windSpan = minSpan + windFactor * (maxSpan - minSpan);
+    const gustSpan = minSpan + gustFactor * (maxSpan - minSpan);
+
+    const start = this._polarToCartesian(50, 50, outerR, angle);
+
+    const windColor = this._speedToColor(windVal);
+    const gustColor = this._speedToColor(gustVal);
+
+    return svg`<g class="current-marker">
+      <line
+        class="current-line-base wind"
+        x1="${start.x}" y1="${start.y}"
+        x2="50" y2="50"
+        stroke="${windColor}"
+      ></line>
+      <line
+        class="current-line-base gust"
+        x1="${start.x}" y1="${start.y}"
+        x2="50" y2="50"
+        stroke="${gustColor}"
+      ></line>
+      <line
+        class="current-line-dash wind"
+        x1="${start.x}" y1="${start.y}"
+        x2="50" y2="50"
+        stroke="${windColor}"
+        stroke-dasharray="${windSpan.toFixed(2)} 100"
+      ></line>
+      <line
+        class="current-line-dash gust"
+        x1="${start.x}" y1="${start.y}"
+        x2="50" y2="50"
+        stroke="${gustColor}"
+        stroke-dasharray="${gustSpan.toFixed(2)} 100"
+      ></line>
     </g>`;
   }
 
@@ -556,6 +646,7 @@ class WindCard extends LitElement {
       ? this._polarToCartesian(50, 50, tickPath_radius, hoverMinuteAngle)
       : null;
     const historyLayer = this._renderRadialHistory();
+    const currentMarker = this._renderCurrentRadialMarker();
 
     return html`
       <ha-card>
@@ -566,6 +657,7 @@ class WindCard extends LitElement {
             </div>
           ` : ''}
           <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
+            ${historyLayer}
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${gustColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${gustOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${windColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${speedOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
             <g class="ring">
@@ -576,7 +668,6 @@ class WindCard extends LitElement {
               <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="butt" stroke-opacity="1" d="${minorPath}"></path>
               <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="butt" stroke-opacity="1" d="${majorPath}"></path>
             </g>
-            ${historyLayer}
             <g class="unit-labels">
               ${(() => {
                 const values = [5,10,15,20,25,30,35,40,45,50,55,60];
@@ -584,6 +675,7 @@ class WindCard extends LitElement {
                 return pts.map((p, i) => svg`<text x="${p.x}" y="${p.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">${values[i]}</text>`);
               })()}
             </g>
+            ${currentMarker}
             ${hoverMinutePos ? svg`
               <g class="hover-minute-dot" transform="translate(${hoverMinutePos.x} ${hoverMinutePos.y})">
                 <circle r="1.6"></circle>
@@ -669,11 +761,35 @@ class WindCard extends LitElement {
       stroke: var(--card-background-color, white);
       stroke-width: 0.6;
     }
-    .history-line {
-      stroke-width: 1.6;
+    .history-radial {
+      pointer-events: none;
+    }
+    .history-line-base {
+      stroke-width: 1;
       stroke-linecap: round;
-      opacity: 0.85;
+      transition: stroke 0.4s ease;
+    }
+    .history-line-dash {
+      stroke-width: 2;
+      stroke-linecap: round;
       transition: stroke 0.4s ease, stroke-dasharray 0.4s ease;
+    }
+    .current-marker {
+      pointer-events: none;
+    }
+    .current-marker .current-line-base {
+      stroke-width: 1.2;
+      stroke-linecap: round;
+    }
+    .current-marker .current-line-dash {
+      stroke-width: 2.6;
+      stroke-linecap: round;
+      animation: currentDash 1.6s ease-in-out infinite;
+    }
+    @keyframes currentDash {
+      0% { stroke-width: 2.2; opacity: 1; }
+      50% { stroke-width: 3; opacity: 0.8; }
+      100% { stroke-width: 2.2; opacity: 1; }
     }
     .graph {
       display: flex;

@@ -26,12 +26,9 @@ class WindCard extends LitElement {
     units_offset: { type: Number },
     _timeline: { type: Array },
     _timelineIndex: { type: Number },
-    _data: { state: true },
     _historyData: { state: true },
-    _maxGust: { state: true },
     _lastUpdated: { state: true },
     _noData: { state: true },
-    show_graph: { type: Boolean },
     show_radialgraph: { type: Boolean }
   };
 
@@ -52,22 +49,11 @@ class WindCard extends LitElement {
     this._timeline = [];
     this._timelineIndex = 0;
 
-    this._data = [];
     this._historyData = [];
-    this._maxGust = 0;
     this._lastUpdated = null;
     this._noData = false;
-    this._initialLoad = true;
-    this.show_graph = true;
     this.show_radialgraph = true;
-    this._hoverData = null;
-    this._dragging = false;
     this._lastTimelineUpdate = null;
-    this._boundPointerMove = this._onGlobalPointerMove.bind(this);
-    this._boundPointerUp = this._onGlobalPointerUp.bind(this);
-    // Memoized unit label positions
-    this._unitPositions = null;
-    this._unitKey = '';
   }
 
   setConfig(config) {
@@ -85,10 +71,7 @@ class WindCard extends LitElement {
     this.tickPath_width = Number(config.tickPath_width || 4);
     this.units_offset = Number(config.units_offset || 4);
     this.minutes = Math.max(1, Number(config.minutes || 30));
-    this.graph_height = Number(config.graph_height || 100);
     this.autoscale = config.autoscale !== false;
-    this.multiplier = 'multiplier' in config ? Number(config.multiplier) : 1;
-    this.show_graph = config.show_graph !== false;
     this.show_radialgraph = config.show_radialgraph !== false;
   }
 
@@ -104,7 +87,7 @@ class WindCard extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._animInterval = setInterval(() => this._animateFromTimeline(), 1000);
-    if (this.show_graph || this.show_radialgraph) {
+    if (this.show_radialgraph) {
       this._scheduleNextFetch();
     }
   }
@@ -153,15 +136,6 @@ class WindCard extends LitElement {
       this.windSpeed = 0;
       this.gust = 0;
       this.direction = 0;
-      return;
-    }
-    if (this._hoverData) {
-      const frame = this._hoverData;
-      this.windSpeed = frame.wind ?? this.windSpeed;
-      this.gust = frame.gust ?? this.gust;
-      if (typeof frame.direction === 'number') {
-        this.direction = this._shortestAngle(this.direction, frame.direction);
-      }
       return;
     }
     if (!this._timeline || this._timeline.length === 0) return;
@@ -242,7 +216,7 @@ class WindCard extends LitElement {
   }
 
   _scheduleNextFetch() {
-    if (!this.show_graph && !this.show_radialgraph) return;
+    if (!this.show_radialgraph) return;
     // Clear any pending timer before scheduling a new one
     if (this._timeout) clearTimeout(this._timeout);
     this._fetchData();
@@ -254,8 +228,7 @@ class WindCard extends LitElement {
   async _fetchData() {
     if (!this.hass || !this.config) return;
 
-    const graphMinutes = Math.max(1, this.minutes || 0);
-    const minutes = Math.max(60, graphMinutes);
+    const minutes = Math.max(60, Math.max(1, this.minutes || 0));
     const now = new Date();
     now.setSeconds(0, 0);
     const end = now.toISOString();
@@ -323,7 +296,6 @@ class WindCard extends LitElement {
       dirAvg.forEach(({ minute, avg }) => { minuteMap[minute] = { ...minuteMap[minute], direction: avg }; });
 
       const data = [];
-
       for (let i = minutes - 1; i >= 0; i--) {
         const mTime = new Date(now.getTime() - i * 60000);
         const key = mTime.toISOString().slice(0, 16);
@@ -343,143 +315,23 @@ class WindCard extends LitElement {
         data.push({ wind: windFinal, gust: gustFinal, direction, time: mTime });
       }
 
-      const graphData = graphMinutes > 0 ? data.slice(-graphMinutes) : [...data];
       const historyData = data.slice(-60);
-      const graphMax = graphData.reduce((max, entry) => {
-        const gustVal = Number.isFinite(entry.gust) ? entry.gust : entry.wind ?? 0;
-        return Math.max(max, Math.ceil(gustVal / 5) * 5);
-      }, 0);
-
-      const noData = (!windHist.length && !gustHist.length && !dirHist.length) || graphData.length === 0;
+      const noData = (!windHist.length && !gustHist.length && !dirHist.length) || historyData.length === 0;
       this._noData = noData;
 
       if (noData) {
-        this._data = [];
         this._historyData = historyData;
-        this._maxGust = 0;
         this._lastUpdated = new Date();
         return;
       }
 
-      if (this._initialLoad) {
-        this._data = graphData.map(() => ({ wind: 0, gust: 0, direction: 0, time: null }));
-        this._historyData = historyData;
-        this._maxGust = graphMax;
-        this._lastUpdated = new Date();
-        await this.updateComplete;
-        this._initialLoad = false;
-      }
-
-      await this._updateDataRolling(graphData);
       this._historyData = historyData;
-      this._maxGust = graphMax;
       this._lastUpdated = new Date();
     } catch (err) {
-      this._data = [];
       this._historyData = [];
-      this._maxGust = 0;
       this._noData = true;
       console.error('Failed to fetch wind data', err);
     }
-  }
-
-
-  async _updateDataRolling(newData) {
-    if (!Array.isArray(newData)) return;
-    const current = Array.isArray(this._data)
-      ? [...this._data]
-      : newData.map(() => ({ wind: 0, gust: 0, direction: 0 }));
-
-    for (let i = newData.length - 1; i >= 0; i--) {
-      current[i] = newData[i];
-      this._data = [...current];
-      await new Promise(resolve => requestAnimationFrame(() => resolve()));
-    }
-  }
-
-  _onBarEnter(data) {
-    this._hoverData = data;
-    this.windSpeed = data.wind;
-    this.gust = data.gust;
-    this.direction = this._shortestAngle(this.direction, data.direction);
-  }
-
-  _onBarLeave(e) {
-    // If moving within the graph between segments, do not clear hover state
-    if (e && e.relatedTarget) {
-      const graph = this.renderRoot.querySelector('.graph');
-      if (graph && graph.contains(e.relatedTarget)) {
-        return;
-      }
-    }
-    this._hoverData = null;
-    this._animateFromTimeline();
-  }
-
-  _onBarDown(e) {
-    e.preventDefault();
-    if (e.currentTarget.setPointerCapture && e.pointerId !== undefined) {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    }
-    const idx = parseInt(e.currentTarget.dataset.index);
-    const data = this._data[idx];
-    if (data) {
-      this._onBarEnter(data);
-    }
-    this._dragging = true;
-    window.addEventListener('pointermove', this._boundPointerMove);
-    window.addEventListener('pointerup', this._boundPointerUp);
-  }
-
-  _onSegmentEnter(e) {
-    const idx = parseInt(e.currentTarget.dataset.index);
-    const data = this._data[idx];
-    if (data) {
-      this._onBarEnter(data);
-    }
-  }
-
-  _onGlobalPointerMove(e) {
-    if (!this._dragging) return;
-    const graph = this.renderRoot.querySelector('.graph');
-    if (!graph) return;
-    const target = this.renderRoot.elementFromPoint(e.clientX, e.clientY);
-    const segment = target?.closest('.wind-bar-segment');
-    if (segment && graph.contains(segment)) {
-      const idx = parseInt(segment.dataset.index);
-      const data = this._data[idx];
-      if (data) {
-        this._onBarEnter(data);
-      }
-    }
-  }
-
-  _onGlobalPointerUp() {
-    this._dragging = false;
-    window.removeEventListener('pointermove', this._boundPointerMove);
-    window.removeEventListener('pointerup', this._boundPointerUp);
-    this._onBarLeave();
-  }
-
-  _onGraphLeave(e) {
-    // Leaving the graph area entirely: clear hover and revert to live values
-    this._hoverData = null;
-    this._dragging = false;
-    this._animateFromTimeline();
-  }
-
-
-  // Memoized calculation of unit label positions
-  _computeUnitPositions() {
-    const key = `${this.tickPath_radius}|${this.units_offset}`;
-    if (this._unitKey === key && Array.isArray(this._unitPositions)) {
-      return this._unitPositions;
-    }
-    const values = [5,10,15,20,25,30,35,40,45,50,55,60];
-    const positions = values.map(v => this._polarToCartesian(50, 50, this.tickPath_radius + this.units_offset, v * 6));
-    this._unitKey = key;
-    this._unitPositions = positions;
-    return positions;
   }
 
   _renderRadialHistory() {
@@ -605,30 +457,6 @@ class WindCard extends LitElement {
     </g>`;
   }
 
-  _renderBar({ wind, gust, direction }, index) {
-    const auto = this.autoscale;
-    const scale = this._maxGust || 1;
-    const height = this.graph_height;
-    const multiplier = this.multiplier ?? 1;
-    const avail = Math.max(0, height - height / this.minutes);
-    const windHeight = auto ? Math.round((wind / scale) * avail) : Math.round(wind * multiplier);
-    const gustHeight = auto ? Math.max(0, Math.round(((gust - wind) / scale) * avail)) : Math.max(0, Math.round((gust - wind) * multiplier));
-    const colorWind = this._speedToColor(wind);
-    const colorGust = this._speedToColor(gust);
-    return html`
-      <div class="wind-bar-segment" data-index="${index}"
-           @pointerdown=${(e) => this._onBarDown(e)}
-           @pointerenter=${(e) => this._onSegmentEnter(e)}
-           @pointermove=${(e) => this._onSegmentEnter(e)}
-           @pointerleave=${(e) => this._onBarLeave(e)}>
-        <div class="bar-container">
-          <div class="date-wind-bar-segment" style="background:${colorWind};height:${windHeight}px;width:100%;"></div>
-          ${gustHeight > 0 ? html`<div class="date-gust-bar-segment" style="background:${colorGust};height:1px;margin-bottom:${gustHeight}px;width:100%;"></div>` : null}
-        </div>
-      </div>`;
-  }
-
-
   render() {
     const dirText = this._directionToText(this.direction);
     const maxSpeed = 60;
@@ -644,22 +472,13 @@ class WindCard extends LitElement {
     const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
     const windColor = this._speedToColor(this.windSpeed);
     const gustColor = this._addAlpha(this._speedToColor(this.gust), 0.5);
-    const hoverTime = this._hoverData?.time ? new Date(this._hoverData.time) : null;
-    const hoverMinuteAngle = hoverTime && Number.isFinite(hoverTime.getTime()) ? hoverTime.getMinutes() * 6 : null;
-    const hoverMinutePos = hoverMinuteAngle !== null
-      ? this._polarToCartesian(50, 50, tickPath_radius, hoverMinuteAngle)
-      : null;
+    const hoverMinutePos = null;
     const historyLayer = this._renderRadialHistory();
     const currentMarker = this._renderCurrentRadialMarker();
 
     return html`
       <ha-card>
         <div class="container" style="width:100%; height:${this.size}px;">
-          ${this.show_graph && !this._noData ? html`
-            <div class="graph graph-behind" style="height:${this.graph_height}px" @pointerleave=${(e) => this._onGraphLeave(e)}>
-              ${repeat(this._data, (_d, index) => index, (d, index) => this._renderBar(d, index))}
-            </div>
-          ` : ''}
           <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
             ${historyLayer}
             ${currentMarker}
@@ -673,18 +492,6 @@ class WindCard extends LitElement {
               <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="butt" stroke-opacity="1" d="${minorPath}"></path>
               <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="butt" stroke-opacity="1" d="${majorPath}"></path>
             </g>
-            <g class="unit-labels">
-              ${(() => {
-                const values = [5,10,15,20,25,30,35,40,45,50,55,60];
-                const pts = this._computeUnitPositions();
-                return pts.map((p, i) => svg`<text x="${p.x}" y="${p.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">${values[i]}</text>`);
-              })()}
-            </g>
-            ${hoverMinutePos ? svg`
-              <g class="hover-minute-dot" transform="translate(${hoverMinutePos.x} ${hoverMinutePos.y})">
-                <circle r="1.6"></circle>
-              </g>
-            ` : null}
             <g class="indicators">
               <path class="compass marker" stroke="var(--card-background-color, white)" stroke-linejoin="bevel" d="m 50,${tickPath_radius + 42} l 5,3 l -5,-12 l -5,12 z" fill="var(--primary-text-color, #212121)" stroke-width="0" style="transform: rotate(${this.direction + 180}deg);"></path>
             </g>
@@ -694,9 +501,9 @@ class WindCard extends LitElement {
               <text class="gust" x="50" y="66" fill="${gustColor}">${this.gust.toFixed(1)} kn</text>
             </g>
           </svg>
-          ${this.show_graph && this._noData ? html`<div class="no-data">${this._error || 'No data available'}</div>` : ''}
+          ${this._noData ? html`<div class="no-data">${this._error || 'No data available'}</div>` : ''}
         </div>
-        ${this.show_graph && !this._noData ? html`
+        ${!this._noData ? html`
           <div class="footer">Updated: ${this._lastUpdated?.toLocaleTimeString()}</div>
         ` : ''}
       </ha-card>
@@ -722,17 +529,6 @@ class WindCard extends LitElement {
       top: 0; left: 0;
       z-index: 2;
       pointer-events: none;
-    }
-    .graph-behind {
-      position: absolute;
-      left: 0; right: 0; bottom: 0;
-      width: 100%;
-      /* height is set inline via style="height:...px" */
-      z-index: 1;
-      display: flex;
-      align-items: end;
-      gap: 1px;
-      pointer-events: auto;
     }
     .info text {
       fill: var(--primary-text-color, #212121);
@@ -760,11 +556,6 @@ class WindCard extends LitElement {
     text {
       fill: var(--primary-text-color, #212121);
     }
-    .hover-minute-dot circle {
-      fill: var(--primary-text-color, #212121);
-      stroke: var(--card-background-color, white);
-      stroke-width: 0.6;
-    }
     .history-radial {
       pointer-events: none;
     }
@@ -790,41 +581,6 @@ class WindCard extends LitElement {
     @keyframes dashGrow {
       from { stroke-dasharray: 0 var(--dash-gap, 100); }
       to { stroke-dasharray: var(--dash, 0) var(--dash-gap, 100); }
-    }
-    .graph {
-      display: flex;
-      align-items: end;
-      gap: 1px;
-      position: relative;
-      touch-action: none;
-    }
-    .overlay-lines {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      pointer-events: none;
-      z-index: 1;
-    }
-    .wind-bar-segment {
-      flex: 1 1 0%;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
-    .bar-container {
-      width: 100%;
-      display: flex;
-      flex-direction: column-reverse;
-      align-items: stretch;
-      transition: height 0.6s ease;
-    }
-    .date-wind-bar-segment,
-    .date-gust-bar-segment {
-      display: inline-block;
-      transition: height 0.6s ease, margin-bottom 0.6s ease, background-color 0.6s ease;
-      will-change: height, margin-bottom, background-color;
     }
     .footer {
       text-align: right;

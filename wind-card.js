@@ -524,11 +524,11 @@ class WindCard extends LitElement {
         const start = this._polarToCartesian(50, 50, outerR, angle);
         const gustExtra = gustVal > 0 ? Math.max(gustSpan - windSpan, 0.8) : 0;
         const colorWind = this._speedToColor(windVal);
-        const colorGust = this._speedToColor(gustVal);
+        const colorGust = this._addAlpha(this._speedToColor(gustVal), 0.7);
         const delay = (slots.length - 1 - idx) * 0.025;
-        const recency = slots.length - 1 - idx;
-        const fadeTable = [1, 0.8, 0.6, 0.45, 0.3];
-        const opacity = recency < fadeTable.length ? fadeTable[recency] : 1;
+        const ageFromOldest = idx; // 0 is oldest, 59 is newest
+        const fadeTable = [0.3, 0.45, 0.6, 0.8, 1];
+        const opacity = ageFromOldest < fadeTable.length ? fadeTable[ageFromOldest] : 1;
         return svg`<g class="history-minute" data-minute="${slot.minute}" id="history-minute-${slot.minute}">
           <line
             class="history-line-dash wind"
@@ -584,7 +584,7 @@ class WindCard extends LitElement {
     const start = this._polarToCartesian(50, 50, outerR, angle);
 
     const windColor = this._speedToColor(windVal);
-    const gustColor = this._speedToColor(gustVal);
+    const gustColor = this._addAlpha(this._speedToColor(gustVal), 0.7);
     const delay = 0; // start animating current immediately
 
     return svg`<g class="current-marker" data-minute="${minute}" id="current-minute-marker">
@@ -662,6 +662,7 @@ class WindCard extends LitElement {
           ` : ''}
           <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
             ${historyLayer}
+            ${currentMarker}
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${gustColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${gustOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
             <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${windColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${speedOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
             <g class="ring">
@@ -679,7 +680,6 @@ class WindCard extends LitElement {
                 return pts.map((p, i) => svg`<text x="${p.x}" y="${p.y}" font-size="4" text-anchor="middle" dominant-baseline="middle">${values[i]}</text>`);
               })()}
             </g>
-            ${currentMarker}
             ${hoverMinutePos ? svg`
               <g class="hover-minute-dot" transform="translate(${hoverMinutePos.x} ${hoverMinutePos.y})">
                 <circle r="1.6"></circle>
@@ -841,4 +841,3 @@ class WindCard extends LitElement {
 }
 
 customElements.define('wind-card', WindCard);
-

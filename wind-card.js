@@ -522,10 +522,13 @@ class WindCard extends LitElement {
         const windSpan = minSpan + windFactor * (maxSpan - minSpan);
         const gustSpan = minSpan + gustFactor * (maxSpan - minSpan);
         const start = this._polarToCartesian(50, 50, outerR, angle);
-        const gustExtra = Math.max(gustSpan - windSpan, 0);
+        const gustExtra = gustVal > 0 ? Math.max(gustSpan - windSpan, 0.8) : 0;
         const colorWind = this._speedToColor(windVal);
         const colorGust = this._speedToColor(gustVal);
         const delay = (slots.length - 1 - idx) * 0.025;
+        const recency = slots.length - 1 - idx;
+        const fadeTable = [1, 0.8, 0.6, 0.45, 0.3];
+        const opacity = recency < fadeTable.length ? fadeTable[recency] : 1;
         return svg`<g class="history-minute" data-minute="${slot.minute}" id="history-minute-${slot.minute}">
           <line
             class="history-line-dash wind"
@@ -533,7 +536,7 @@ class WindCard extends LitElement {
             x1="${start.x}" y1="${start.y}"
             x2="${center.x}" y2="${center.y}"
             stroke="${colorWind}"
-            style="--dash:${(windVal > 0 ? windSpan : 0).toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay}s;"
+            style="--dash:${(windVal > 0 ? windSpan : 0).toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay}s;opacity:${opacity};"
           ></line>
           ${gustExtra > 0 ? svg`<line
             class="history-line-dash gust"
@@ -541,7 +544,7 @@ class WindCard extends LitElement {
             x1="${start.x}" y1="${start.y}"
             x2="${center.x}" y2="${center.y}"
             stroke="${colorGust}"
-            style="--dash:${Math.max(gustExtra, 0.8).toFixed(2)};--dash-gap:100;--dash-offset:${windSpan.toFixed(2)};--dash-delay:${delay + 0.05}s;"
+            style="--dash:${gustExtra.toFixed(2)};--dash-gap:100;--dash-offset:${windSpan.toFixed(2)};--dash-delay:${delay + 0.05}s;opacity:${opacity};"
           ></line>` : null}
         </g>`;
       })}
@@ -576,7 +579,7 @@ class WindCard extends LitElement {
     const windSpan = minSpan + windFactor * (maxSpan - minSpan);
     const gustSpan = minSpan + gustFactor * (maxSpan - minSpan);
     const windDashLength = windVal > 0 ? windSpan : 0;
-    const gustExtra = Math.max(gustSpan - windSpan, 0);
+    const gustExtra = gustVal > 0 ? Math.max(gustSpan - windSpan, 0.8) : 0;
 
     const start = this._polarToCartesian(50, 50, outerR, angle);
 
@@ -597,7 +600,7 @@ class WindCard extends LitElement {
         x1="${start.x}" y1="${start.y}"
         x2="50" y2="50"
         stroke="${gustColor}"
-        style="--dash:${Math.max(gustExtra, 0.8).toFixed(2)};--dash-gap:100;--dash-offset:${windDashLength.toFixed(2)};--dash-delay:${delay + 0.05}s;--dash-duration:0.5s;"
+        style="--dash:${gustExtra.toFixed(2)};--dash-gap:100;--dash-offset:${windDashLength.toFixed(2)};--dash-delay:${delay + 0.05}s;--dash-duration:0.5s;"
       ></line>` : null}
     </g>`;
   }
@@ -838,5 +841,4 @@ class WindCard extends LitElement {
 }
 
 customElements.define('wind-card', WindCard);
-
 

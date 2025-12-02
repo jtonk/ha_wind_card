@@ -459,7 +459,6 @@ class WindCard extends LitElement {
 
   render() {
     const dirText = this._directionToText(this.direction);
-    const maxSpeed = 60;
     const radius = this.gauge_radius;
     const tickPath_radius = this.tickPath_radius;
     const tick_length_major = this.tickPath_width;
@@ -467,12 +466,8 @@ class WindCard extends LitElement {
     const cardinal_offset = this.cardinal_offset;
     const majorPath = this._buildTickPath(tickPath_radius, tick_length_major, 30, [0, 90, 180, 270]);
     const minorPath = this._buildTickPath(tickPath_radius, tick_length_minor, 6, [355,0,5,85,90,95,175,180,185,265,270,275]);
-    const circumference = 2 * Math.PI * radius;
-    const speedOffset = circumference * (1 - Math.min(this.windSpeed, maxSpeed) / maxSpeed);
-    const gustOffset = circumference * (1 - Math.min(this.gust, maxSpeed) / maxSpeed);
     const windColor = this._speedToColor(this.windSpeed);
     const gustColor = this._addAlpha(this._speedToColor(this.gust), 0.5);
-    const hoverMinutePos = null;
     const historyLayer = this._renderRadialHistory();
     const currentMarker = this._renderCurrentRadialMarker();
 
@@ -482,8 +477,6 @@ class WindCard extends LitElement {
           <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true">
             ${historyLayer}
             ${currentMarker}
-            <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${gustColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${gustOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
-            <circle cx="50" cy="50" r="${radius}" fill="none" stroke="${windColor}" stroke-width="${this.gauge_width}" stroke-dasharray="${circumference}" stroke-dashoffset="${speedOffset}" style="transition: stroke-dashoffset 1s ease-in-out, stroke 1s ease-in-out;" transform="rotate(-90 50 50)" opacity="1"></circle>
             <g class="ring">
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - tickPath_radius + cardinal_offset}" font-size="11">N</text>
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="${50 + tickPath_radius - cardinal_offset}" y="50" font-size="11">E</text>

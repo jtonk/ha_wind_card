@@ -27,6 +27,7 @@ class WindCard extends LitElement {
     _timeline: { type: Array },
     _timelineIndex: { type: Number },
     _data: { state: true },
+    _historyData: { state: true },
     _maxGust: { state: true },
     _lastUpdated: { state: true },
     _noData: { state: true },
@@ -51,6 +52,7 @@ class WindCard extends LitElement {
     this._timelineIndex = 0;
 
     this._data = [];
+    this._historyData = [];
     this._maxGust = 0;
     this._lastUpdated = null;
     this._noData = false;
@@ -80,7 +82,7 @@ class WindCard extends LitElement {
     this.tickPath_radius = Number(config.tickPath_radius || 38);
     this.tickPath_width = Number(config.tickPath_width || 4);
     this.units_offset = Number(config.units_offset || 4);
-    this.minutes = Number(config.minutes || 30);
+    this.minutes = Math.max(1, Number(config.minutes || 30));
     this.graph_height = Number(config.graph_height || 100);
     this.autoscale = config.autoscale !== false;
     this.multiplier = 'multiplier' in config ? Number(config.multiplier) : 1;
@@ -249,7 +251,8 @@ class WindCard extends LitElement {
   async _fetchData() {
     if (!this.hass || !this.config) return;
 
-    const minutes = this.minutes;
+    const graphMinutes = Math.max(1, this.minutes || 0);
+    const minutes = Math.max(60, graphMinutes);
     const now = new Date();
     now.setSeconds(0, 0);
     const end = now.toISOString();
@@ -317,7 +320,6 @@ class WindCard extends LitElement {
       dirAvg.forEach(({ minute, avg }) => { minuteMap[minute] = { ...minuteMap[minute], direction: avg }; });
 
       const data = [];
-      let max = 0;
 
       for (let i = minutes - 1; i >= 0; i--) {
         const mTime = new Date(now.getTime() - i * 60000);
@@ -335,23 +337,43 @@ class WindCard extends LitElement {
         const windFinal = Math.min(60, Math.max(0, windRaw));
         const direction = dirRaw;
 
-        max = Math.max(max, Math.ceil(gustFinal / 5) * 5);
         data.push({ wind: windFinal, gust: gustFinal, direction, time: mTime });
       }
 
+      const graphData = graphMinutes > 0 ? data.slice(-graphMinutes) : [...data];
+      const historyData = data.slice(-60);
+      const graphMax = graphData.reduce((max, entry) => {
+        const gustVal = Number.isFinite(entry.gust) ? entry.gust : entry.wind ?? 0;
+        return Math.max(max, Math.ceil(gustVal / 5) * 5);
+      }, 0);
+
+      const noData = (!windHist.length && !gustHist.length && !dirHist.length) || graphData.length === 0;
+      this._noData = noData;
+
+      if (noData) {
+        this._data = [];
+        this._historyData = historyData;
+        this._maxGust = 0;
+        this._lastUpdated = new Date();
+        return;
+      }
+
       if (this._initialLoad) {
-        this._data = data.map(() => ({ wind: 0, gust: 0, direction: 0 }));
-        this._maxGust = max;
+        this._data = graphData.map(() => ({ wind: 0, gust: 0, direction: 0, time: null }));
+        this._historyData = historyData;
+        this._maxGust = graphMax;
         this._lastUpdated = new Date();
         await this.updateComplete;
         this._initialLoad = false;
       }
 
-      await this._updateDataRolling(data);
-      this._maxGust = max;
+      await this._updateDataRolling(graphData);
+      this._historyData = historyData;
+      this._maxGust = graphMax;
       this._lastUpdated = new Date();
     } catch (err) {
       this._data = [];
+      this._historyData = [];
       this._maxGust = 0;
       this._noData = true;
       console.error('Failed to fetch wind data', err);
@@ -457,6 +479,38 @@ class WindCard extends LitElement {
     return positions;
   }
 
+  _renderRadialHistory() {
+    if (!Array.isArray(this._historyData) || this._historyData.length === 0) return null;
+    const outerR = this.tickPath_radius;
+    const maxSpan = Math.max(4, Math.min(18, outerR - 16));
+    const minSpan = 1.5;
+    const windScale = Math.max(...this._historyData.map(d => Number.isFinite(d.wind) ? d.wind : 0), 1);
+    const scale = this.autoscale ? windScale : 60;
+
+    return svg`<g class="history-radial">
+      ${this._historyData.slice(-60).map((d, i) => {
+        const t = d.time ? new Date(d.time) : null;
+        const angle = t && Number.isFinite(t.getTime())
+          ? (t.getMinutes() * 6)
+          : ((this._historyData.length - 1 - i) * 6) % 360;
+        const windVal = Number.isFinite(d.wind) ? d.wind : 0;
+        const factor = Math.min(1, Math.max(0, windVal / (scale || 1)));
+        const span = minSpan + factor * (maxSpan - minSpan);
+        const start = this._polarToCartesian(50, 50, outerR, angle);
+        const end = this._polarToCartesian(50, 50, outerR - span, angle);
+        const color = this._speedToColor(windVal);
+        const dash = Math.max(1, span - 0.5).toFixed(2);
+        return svg`<line
+          class="history-line"
+          x1="${start.x}" y1="${start.y}"
+          x2="${end.x}" y2="${end.y}"
+          stroke="${color}"
+          stroke-dasharray="${dash} 100"
+        ></line>`;
+      })}
+    </g>`;
+  }
+
   _renderBar({ wind, gust, direction }, index) {
     const auto = this.autoscale;
     const scale = this._maxGust || 1;
@@ -501,6 +555,7 @@ class WindCard extends LitElement {
     const hoverMinutePos = hoverMinuteAngle !== null
       ? this._polarToCartesian(50, 50, tickPath_radius, hoverMinuteAngle)
       : null;
+    const historyLayer = this._renderRadialHistory();
 
     return html`
       <ha-card>
@@ -521,6 +576,7 @@ class WindCard extends LitElement {
               <path class="compass minor" stroke-width="0.5" fill="none" stroke="var(--secondary-text-color, #727272)" stroke-linecap="butt" stroke-opacity="1" d="${minorPath}"></path>
               <path class="compass major" stroke-width="1.4" fill="none" stroke="var(--primary-text-color, #212121)" stroke-linecap="butt" stroke-opacity="1" d="${majorPath}"></path>
             </g>
+            ${historyLayer}
             <g class="unit-labels">
               ${(() => {
                 const values = [5,10,15,20,25,30,35,40,45,50,55,60];
@@ -612,6 +668,12 @@ class WindCard extends LitElement {
       fill: var(--primary-text-color, #212121);
       stroke: var(--card-background-color, white);
       stroke-width: 0.6;
+    }
+    .history-line {
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      opacity: 0.85;
+      transition: stroke 0.4s ease, stroke-dasharray 0.4s ease;
     }
     .graph {
       display: flex;

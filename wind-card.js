@@ -521,12 +521,14 @@ class WindCard extends LitElement {
       stroke-dashoffset: var(--dash-offset, 0);
       transition: stroke-dasharray 0.6s ease-in-out, stroke-dashoffset 0.6s ease-in-out, stroke 0.3s ease-in-out;
     }
+    .history-line-dash.wind{
+      filter: drop-shadow(0 0 0.5px var(--primary-text-color, #212121));
+    }
     .history-minute.current .history-line-track {
       stroke-opacity: 0;
     }
     .history-minute.current .history-line-dash {
-      stroke-width: 2.8;
-      filter: drop-shadow(0 0 0.35px rgba(0,0,0,0.18));
+
     }
     .footer {
       text-align: right;

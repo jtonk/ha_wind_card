@@ -376,10 +376,10 @@ class WindCard extends LitElement {
         const start = this._polarToCartesian(50, 50, outerR, angle);
         const gustExtra = gustVal > 0 ? Math.max(gustSpan - windSpan, 0.8) : 0;
         const colorWind = this._speedToColor(windVal);
-        const colorGust = this._addAlpha(this._speedToColor(gustVal), 0.7);
+        const colorGust = this._addAlpha(this._speedToColor(gustVal), 1.0);
         const delay = (slots.length - 1 - idx) * 0.025;
         const ageFromOldest = idx; // 0 is oldest, 59 is newest
-        const fadeTable = [0.3, 0.45, 0.6, 0.8, 1];
+        const fadeTable = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
         const opacity = ageFromOldest < fadeTable.length ? fadeTable[ageFromOldest] : 1;
         return svg`<g class="history-minute" data-minute="${slot.minute}" id="history-minute-${slot.minute}">
           <line
@@ -396,7 +396,7 @@ class WindCard extends LitElement {
             x1="${start.x}" y1="${start.y}"
             x2="${center.x}" y2="${center.y}"
             stroke="${colorGust}"
-            style="--dash:${gustExtra.toFixed(2)};--dash-gap:100;--dash-offset:${windSpan.toFixed(2)*-1};--dash-delay:${delay + 0.05}s;opacity:${opacity};"
+            style="--dash:${(gustVal > 0 ? gustSpan : 0).toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay + 0.05}s;opacity:${opacity};"
           ></line>` : null}
         </g>`;
       })}
@@ -431,8 +431,8 @@ class WindCard extends LitElement {
     const windSpan = minSpan + windFactor * (maxSpan - minSpan);
     const gustSpan = minSpan + gustFactor * (maxSpan - minSpan);
     const windDashLength = windVal > 0 ? windSpan : 0;
-    const gustExtra = gustVal > 0 ? Math.max(gustSpan - windSpan, 0.8) : 0;
-
+    const gustDashLength = gustVal > 0 ? gustSpan : 0;
+    
     const start = this._polarToCartesian(50, 50, outerR, angle);
 
     const windColor = this._speedToColor(windVal);
@@ -452,7 +452,7 @@ class WindCard extends LitElement {
         x1="${start.x}" y1="${start.y}"
         x2="50" y2="50"
         stroke="${gustColor}"
-        style="--dash:${gustExtra.toFixed(2)};--dash-gap:100;--dash-offset:${windDashLength.toFixed(2)*-1};--dash-delay:${delay + 0.05}s;--dash-duration:0.5s;"
+        style="--dash:${gustDashLength.toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay + 0.05}s;--dash-duration:0.5s;"
       ></line>` : null}
     </g>`;
   }

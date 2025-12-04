@@ -18,12 +18,9 @@ class WindCard extends LitElement {
     gust: { type: Number },
     direction: { type: Number },
     size: { type: Number },
-    gauge_radius: { type: Number },
-    gauge_width: { type: Number },
     cardinal_offset: { type: Number },
     tickPath_radius: { type: Number },
     tickPath_width: { type: Number },
-    units_offset: { type: Number },
     _timeline: { type: Array },
     _timelineIndex: { type: Number },
     _historyData: { state: true },
@@ -40,12 +37,9 @@ class WindCard extends LitElement {
     this.gust = 0;
     this.direction = 0;
     this.size = 200;
-    this.gauge_radius = 40;
-    this.gauge_width = 2;
     this.cardinal_offset = 4;
     this.tickPath_radius = 38;
     this.tickPath_width = 4;
-    this.units_offset = 4;
     this._timeline = [];
     this._timelineIndex = 0;
 
@@ -58,19 +52,18 @@ class WindCard extends LitElement {
 
   setConfig(config) {
 
+    if (!config?.entity) {
+      throw new Error('entity must be set');
+    }
     if (!config.wind_entity || !config.gust_entity || !config.direction_entity) {
-      this._noData = true;
-      this._error = 'wind_entity, gust_entity and direction_entity must be set';
+      throw new Error('wind_entity, gust_entity and direction_entity must be set');
     }
     this.config = config;
     this.size = Number(config.size || 200);
-    this.gauge_radius = Number(config.gauge_radius || 40);
-    this.gauge_width = Number(config.gauge_width || 2);
     this.cardinal_offset = Number(config.cardinal_offset || 4);
     this.tickPath_radius = Number(config.tickPath_radius || 38);
     this.tickPath_width = Number(config.tickPath_width || 4);
-    this.units_offset = Number(config.units_offset || 4);
-    this.minutes = Math.max(1, Number(config.minutes || 30));
+    this.minutes = Math.max(1, Math.min(60, Number(config.minutes || 30)));
     this.autoscale = config.autoscale !== false;
     this.show_radialgraph = config.show_radialgraph !== false;
   }
@@ -228,7 +221,7 @@ class WindCard extends LitElement {
   async _fetchData() {
     if (!this.hass || !this.config) return;
 
-    const minutes = Math.max(60, Math.max(1, this.minutes || 0));
+    const minutes = Math.max(1, Math.min(60, Number(this.minutes || 0)));
     const now = new Date();
     now.setSeconds(0, 0);
     const end = now.toISOString();
@@ -374,7 +367,6 @@ class WindCard extends LitElement {
         const windSpan = minSpan + windFactor * (maxSpan - minSpan);
         const gustSpan = minSpan + gustFactor * (maxSpan - minSpan);
         const start = this._polarToCartesian(50, 50, outerR, angle);
-        const gustExtra = gustVal > 0 ? Math.max(gustSpan - windSpan, 0.8) : 0;
         const colorWind = this._speedToColor(windVal);
         const colorGust = this._addAlpha(this._speedToColor(gustVal), 1.0);
         const delay = (slots.length - 1 - idx) * 0.025;
@@ -382,6 +374,14 @@ class WindCard extends LitElement {
         const fadeTable = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
         const opacity = ageFromOldest < fadeTable.length ? fadeTable[ageFromOldest] : 1;
         return svg`<g class="history-minute" data-minute="${slot.minute}" id="history-minute-${slot.minute}">
+          ${gustVal > 0 ? svg`<line
+            class="history-line-dash gust"
+            data-minute="${slot.minute}"
+            x1="${start.x}" y1="${start.y}"
+            x2="${center.x}" y2="${center.y}"
+            stroke="${colorGust}"
+            style="--dash:${gustSpan.toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay + 0.05}s;opacity:${opacity};"
+          ></line>` : null}
           <line
             class="history-line-dash wind"
             data-minute="${slot.minute}"
@@ -390,14 +390,6 @@ class WindCard extends LitElement {
             stroke="${colorWind}"
             style="--dash:${(windVal > 0 ? windSpan : 0).toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay}s;opacity:${opacity};"
           ></line>
-          ${gustExtra > 0 ? svg`<line
-            class="history-line-dash gust"
-            data-minute="${slot.minute}"
-            x1="${start.x}" y1="${start.y}"
-            x2="${center.x}" y2="${center.y}"
-            stroke="${colorGust}"
-            style="--dash:${(gustVal > 0 ? gustSpan : 0).toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay + 0.05}s;opacity:${opacity};"
-          ></line>` : null}
         </g>`;
       })}
     </g>`;
@@ -412,7 +404,7 @@ class WindCard extends LitElement {
     const angle = minute * 6;
 
     const windVal = Math.max(0, Number.isFinite(this.windSpeed) ? this.windSpeed : 0);
-    const gustVal = Math.max(windVal, Number.isFinite(this.gust) ? this.gust : windVal);
+    const gustVal = Math.max(0, Number.isFinite(this.gust) ? this.gust : windVal);
 
     const historyMax = Array.isArray(this._historyData) && this._historyData.length
       ? Math.max(...this._historyData.map(d => Math.max(
@@ -440,6 +432,13 @@ class WindCard extends LitElement {
     const delay = 0; // start animating current immediately
 
     return svg`<g class="current-marker" data-minute="${minute}" id="current-minute-marker">
+      ${gustDashLength > 0 ? svg`<line
+        class="current-line-dash gust"
+        x1="${start.x}" y1="${start.y}"
+        x2="50" y2="50"
+        stroke="${gustColor}"
+        style="--dash:${gustDashLength.toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay}s;--dash-duration:0.5s;"
+      ></line>` : null}
       <line
         class="current-line-dash wind"
         x1="${start.x}" y1="${start.y}"
@@ -447,19 +446,11 @@ class WindCard extends LitElement {
         stroke="${windColor}"
         style="--dash:${windDashLength.toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay}s;--dash-duration:0.5s;"
       ></line>
-      ${gustExtra > 0 ? svg`<line
-        class="current-line-dash gust"
-        x1="${start.x}" y1="${start.y}"
-        x2="50" y2="50"
-        stroke="${gustColor}"
-        style="--dash:${gustDashLength.toFixed(2)};--dash-gap:100;--dash-offset:0;--dash-delay:${delay + 0.05}s;--dash-duration:0.5s;"
-      ></line>` : null}
     </g>`;
   }
 
   render() {
     const dirText = this._directionToText(this.direction);
-    const radius = this.gauge_radius;
     const tickPath_radius = this.tickPath_radius;
     const tick_length_major = this.tickPath_width;
     const tick_length_minor = this.tickPath_width / 2;
@@ -494,7 +485,7 @@ class WindCard extends LitElement {
               <text class="gust" x="50" y="66" fill="${gustColor}">${this.gust.toFixed(1)} kn</text>
             </g>
           </svg>
-          ${this._noData ? html`<div class="no-data">${this._error || 'No data available'}</div>` : ''}
+          ${this._noData ? html`<div class="no-data">No data available</div>` : ''}
         </div>
         ${!this._noData ? html`
           <div class="footer">Updated: ${this._lastUpdated?.toLocaleTimeString()}</div>

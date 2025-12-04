@@ -396,7 +396,7 @@ class WindCard extends LitElement {
             x1="${start.x}" y1="${start.y}"
             x2="${center.x}" y2="${center.y}"
             stroke="${colorGust}"
-            style="--dash:${gustExtra.toFixed(2)};--dash-gap:100;--dash-offset:${windSpan.toFixed(2)+1};--dash-delay:${delay + 0.05}s;opacity:${opacity};"
+            style="--dash:${gustExtra.toFixed(2)};--dash-gap:100;--dash-offset:${windSpan.toFixed(2)};--dash-delay:${delay + 0.05}s;opacity:${opacity};"
           ></line>` : null}
         </g>`;
       })}
@@ -452,7 +452,7 @@ class WindCard extends LitElement {
         x1="${start.x}" y1="${start.y}"
         x2="50" y2="50"
         stroke="${gustColor}"
-        style="--dash:${gustExtra.toFixed(2)};--dash-gap:100;--dash-offset:${windDashLength.toFixed(2)};--dash-delay:${delay + 0.05}s;--dash-duration:0.5s;"
+        style="--dash:${gustExtra.toFixed(2)};--dash-gap:100;--dash-offset:-${windDashLength.toFixed(2)};--dash-delay:${delay + 0.05}s;--dash-duration:0.5s;"
       ></line>` : null}
     </g>`;
   }

@@ -11,6 +11,7 @@ const wsColors = [
 ];
 
 class WindCard extends LitElement {
+  // Lit reactive properties and internal state fields exposed to the template.
   static properties = {
     hass: {},
     config: {},
@@ -31,6 +32,7 @@ class WindCard extends LitElement {
 
   constructor() {
     super();
+    // Initialize defaults so the UI has sane fallback values before data arrives.
     this.hass = null;
     this.config = null;
     this.windSpeed = 0;
@@ -70,6 +72,7 @@ class WindCard extends LitElement {
 
   set hass(hass) {
     this._hass = hass;
+    // Refresh timeline values whenever Home Assistant state changes.
     this._updateFromEntity();
   }
 
@@ -79,6 +82,7 @@ class WindCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    // Step through historical frames every second and fetch history on the minute.
     this._animInterval = setInterval(() => this._animateFromTimeline(), 1000);
     if (this.show_radialgraph) {
       this._scheduleNextFetch();
@@ -87,11 +91,13 @@ class WindCard extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    // Clean up timers when the card is removed.
     clearInterval(this._animInterval);
     clearTimeout(this._timeout);
   }
 
   updated() {
+    // Force SVG text to re-render to avoid Safari text clipping glitches.
     const labels = this.renderRoot.querySelectorAll('.unit-labels text');
     labels.forEach(el => {
       const val = el.textContent;
@@ -101,6 +107,7 @@ class WindCard extends LitElement {
   }
 
   _updateFromEntity() {
+    // Pull the precomputed timeline dataset embedded in the configured entity.
     if (!this._hass || !this.config) return;
     const stateObj = this._hass.states[this.config.entity];
     if (!stateObj?.attributes?.data) return;
@@ -144,12 +151,14 @@ class WindCard extends LitElement {
   }
 
   _shortestAngle(current, target) {
+    // Rotate in the shorter direction to avoid full-circle spins.
     if (typeof current !== 'number') return target;
     const diff = ((target - current + 540) % 360) - 180;
     return current + diff;
   }
 
   _buildMinuteSlots(now = new Date()) {
+    // Build 60 evenly spaced minute slots aligned to the current hour.
     const slots = [];
     for (let i = 0; i < 60; i++) {
       const t = new Date(now.getTime() - (59 - i) * 60000);
@@ -161,6 +170,7 @@ class WindCard extends LitElement {
   }
 
   _polarToCartesian(cx, cy, r, angleDeg) {
+    // Convert polar coordinates to SVG cartesian space.
     const angleRad = (angleDeg - 90) * Math.PI / 180;
     return {
       x: cx + r * Math.cos(angleRad),
@@ -169,6 +179,7 @@ class WindCard extends LitElement {
   }
 
   _directionToText(deg) {
+    // Map a degree bearing to the nearest compass label.
     const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
     const norm = ((deg % 360) + 360) % 360;
     const i = Math.round(norm / 22.5) % 16;
@@ -176,6 +187,7 @@ class WindCard extends LitElement {
   }
 
   _buildTickPath(radius, length, step, skip = []) {
+    // Generate an SVG path string for evenly spaced tick marks.
     let d = '';
     for (let a = 0; a < 360; a += step) {
       if (skip.includes(a)) continue;
@@ -187,6 +199,7 @@ class WindCard extends LitElement {
   }
 
   _speedToColor(speed) {
+    // Pick a color from the palette based on wind speed (2 kn buckets).
     const idx = Math.min(wsColors.length - 1, Math.max(0, Math.floor(speed / 2)));
     return wsColors[idx];
   }
@@ -204,6 +217,7 @@ class WindCard extends LitElement {
   }
 
   _isDataLive() {
+    // Treat data as live if all tracked entities updated within the last minute.
     if (!this.hass || !this.config) return false;
     const ids = [
       this.config.wind_entity,
@@ -221,7 +235,7 @@ class WindCard extends LitElement {
 
   _scheduleNextFetch() {
     if (!this.show_radialgraph) return;
-    // Clear any pending timer before scheduling a new one
+    // Clear any pending timer before scheduling a new one.
     if (this._timeout) clearTimeout(this._timeout);
     this._fetchData();
     const now = new Date();
@@ -230,6 +244,7 @@ class WindCard extends LitElement {
   }
 
   async _fetchData() {
+    // Fetch history for the configured entities and average values per minute.
     if (!this.hass || !this.config) return;
 
     const minutes = Math.max(1, Math.min(60, Number(this.minutes || 0)));
@@ -339,6 +354,7 @@ class WindCard extends LitElement {
   }
 
   _renderRadialHistory(now, currentMinute) {
+    // Build the radial history layer showing gust/wind per minute for the last hour.
     if (!this.show_radialgraph || !Array.isArray(this._historyData)) return null;
     const outerR = this.tickPath_radius;
     const maxSpan = Math.max(4, Math.min(18, outerR - 16));
@@ -414,6 +430,7 @@ class WindCard extends LitElement {
   }
 
   render() {
+    // Compose the gauge SVG and footer using the latest live and history data.
     const dirText = this._directionToText(this.direction);
     const now = new Date();
     const currentMinute = now.getMinutes();

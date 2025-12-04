@@ -363,8 +363,15 @@ class WindCard extends LitElement {
       ${repeat(slots, (slot) => slot.minute, (slot, idx) => {
         const d = minuteData[slot.minute];
         const angle = slot.angle;
-        const windVal = Number.isFinite(d?.wind) ? d.wind : 0;
-        const gustVal = Number.isFinite(d?.gust) ? d.gust : windVal;
+        const isCurrent = slot.minute === currentMinute;
+        const liveWind = Number.isFinite(this.windSpeed) ? this.windSpeed : null;
+        const liveGust = Number.isFinite(this.gust) ? this.gust : null;
+        const baseWind = Number.isFinite(d?.wind) ? d.wind : 0;
+        const baseGust = Number.isFinite(d?.gust) ? d.gust : baseWind;
+        const windVal = isCurrent && liveWind !== null ? liveWind : baseWind;
+        const gustVal = isCurrent && (liveGust !== null || liveWind !== null)
+          ? (liveGust ?? liveWind ?? baseGust)
+          : baseGust;
         const windFactor = Math.min(1, Math.max(0, windVal / (scale || 1)));
         const gustFactor = Math.min(1, Math.max(0, gustVal / (scale || 1)));
         const windSpan = minSpan + windFactor * (maxSpan - minSpan);
@@ -378,7 +385,6 @@ class WindCard extends LitElement {
         const ageFromOldest = idx; // 0 is oldest, 59 is newest
         const fadeTable = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
         const opacity = ageFromOldest < fadeTable.length ? fadeTable[ageFromOldest] : 1;
-        const isCurrent = slot.minute === currentMinute;
         return svg`<g class="history-minute ${isCurrent ? 'current' : ''}" data-minute="${slot.minute}" id="history-minute-${slot.minute}">
           <line
             class="history-line-track"

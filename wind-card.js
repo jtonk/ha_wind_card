@@ -511,7 +511,7 @@ class WindCard extends LitElement {
       stroke: var(--secondary-text-color, #727272);
       stroke-width: 0.6;
       stroke-linecap: round;
-      stroke-opacity: 0.25;
+      stroke-opacity: 0;
       transition: stroke-opacity 0.4s ease-in-out;
     }
     .history-line-dash {

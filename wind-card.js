@@ -185,8 +185,8 @@ class WindCard extends LitElement {
     const center = { x: 50, y: 50 };
     const spanRange = Math.max(0, maxSpan - minSpan);
     if (spanRange <= 0) return null;
-    const dashLenKn = 0.6;
-    const gapLenKn = Math.max(0.4, 5 - dashLenKn); // repeat every 5 knots
+    const dashLenKn = 0.2; // half of 5-kn span
+    const gapLenKn = 5 - dashLenKn; // keep total cycle at 5 knots
 
     const ticks = anchors.map(anchor => {
       const angle = anchor.angle;
@@ -633,7 +633,7 @@ class WindCard extends LitElement {
     }
     .speed-ticks line {
       stroke: var(--secondary-text-color, #727272);
-      stroke-width: 0.5;
+      stroke-width: var(--tick-mark-width, 0.5);
       stroke-linecap: round;
       opacity: 0.5;
     }

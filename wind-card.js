@@ -65,7 +65,7 @@ class WindCard extends LitElement {
     this.cardinal_offset = Number(config.cardinal_offset || 4);
     this.tickPath_radius = Number(config.tickPath_radius || 38);
     this.tickPath_width = Number(config.tickPath_width || 4);
-    this.minutes = Math.max(1, Math.min(60, Number(config.minutes || 30)));
+    this.minutes = Math.max(1, Math.min(60, Number(config.minutes || 60)));
     this.autoscale = config.autoscale !== false;
     this.show_radialgraph = config.show_radialgraph !== false;
   }
@@ -632,10 +632,10 @@ class WindCard extends LitElement {
       pointer-events: none;
     }
     .speed-ticks line {
-      stroke: var(--secondary-text-color, #727272);
-      stroke-width: var(--tick-mark-width, 0.5);
-      stroke-linecap: round;
-      opacity: 0.5;
+      stroke: var(--primary-text-color, #212121);
+      stroke-width: 1.4;
+      stroke-linecap: but;
+      opacity: 1.0;
     }
     .footer {
       text-align: right;

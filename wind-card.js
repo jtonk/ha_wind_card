@@ -276,9 +276,27 @@ class WindCard extends LitElement {
     return { wind, gust, direction };
   }
 
+  _minuteFromPointerEvent(ev) {
+    if (!ev) return null;
+    const svg = this.renderRoot?.querySelector('svg');
+    if (!svg) return null;
+    const rect = svg.getBoundingClientRect();
+    if (!rect?.width || !rect?.height) return null;
+
+    const clientX = ev.clientX ?? ev?.touches?.[0]?.clientX;
+    const clientY = ev.clientY ?? ev?.touches?.[0]?.clientY;
+    if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return null;
+
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = clientX - cx;
+    const dy = clientY - cy;
+    const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 90 + 360) % 360;
+    return Math.round(angle / 6) % 60;
+  }
+
   _handleMinutePointer(ev) {
-    const minuteAttr = ev?.currentTarget?.dataset?.minute ?? ev?.target?.dataset?.minute;
-    const minute = Number(minuteAttr);
+    const minute = this._minuteFromPointerEvent(ev);
     if (!Number.isFinite(minute)) return;
     this._hoverMinute = minute;
   }
@@ -468,13 +486,7 @@ class WindCard extends LitElement {
         const opacity = ageFromOldest < fadeTable.length ? fadeTable[ageFromOldest] : 1;
         return svg`<g
           class="history-minute ${isCurrent ? 'current' : ''}"
-          data-minute="${slot.minute}"
           id="history-minute-${slot.minute}"
-          @pointerenter=${this._handleMinutePointer}
-          @pointerdown=${this._handleMinutePointer}
-          @pointermove=${this._handleMinutePointer}
-          @pointerleave=${this._clearHover}
-          @pointercancel=${this._clearHover}
         >
           <line
             class="history-line-track"
@@ -524,7 +536,16 @@ class WindCard extends LitElement {
     return html`
       <ha-card>
         <div class="container" style="width:100%; height:${this.size}px;">
-          <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" focusable="false" role="img" aria-hidden="true" @pointerleave=${this._clearHover}>
+          <svg
+            viewBox="0 0 100 100"
+            preserveAspectRatio="xMidYMid meet"
+            focusable="false"
+            role="img"
+            aria-hidden="true"
+            @pointerenter=${this._handleMinutePointer}
+            @pointermove=${this._handleMinutePointer}
+            @pointerleave=${this._clearHover}
+          >
             ${historyLayer}
             <g class="ring">
               <text class="compass cardinal" text-anchor="middle" alignment-baseline="central" x="50" y="${50 - tickPath_radius + cardinal_offset}" font-size="11">N</text>

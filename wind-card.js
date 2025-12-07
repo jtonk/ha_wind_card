@@ -1,6 +1,6 @@
 import { LitElement, svg, html, css } from 'https://unpkg.com/lit?module';
 import { repeat } from 'https://unpkg.com/lit/directives/repeat.js?module';
-
+////
 // Color scale used for wind and gust speeds. This mirrors the palette from
 // ha_wind_stat_card so both the gauge and graph use the same colours.
 const wsColors = [

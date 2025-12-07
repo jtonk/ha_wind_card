@@ -623,8 +623,6 @@ class WindCard extends LitElement {
       pointer-events: auto;
     }
     .history-minute {
-      pointer-events: all;
-      cursor: pointer;
     }
     .history-line-track {
       stroke: var(--secondary-text-color, #727272);

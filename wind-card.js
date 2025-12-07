@@ -441,7 +441,6 @@ class WindCard extends LitElement {
     const speedTicks = this._renderSpeedScale(outerR, minSpan, maxSpan, scale, speedAnchors);
 
     return svg`<g class="history-radial">
-      ${speedTicks}
       ${repeat(slots, (slot) => slot.minute, (slot, idx) => {
         const d = minuteData[slot.minute];
         const angle = slot.angle;
@@ -501,6 +500,7 @@ class WindCard extends LitElement {
           ></line>
         </g>`;
       })}
+      ${speedTicks}
     </g>`;
   }
 

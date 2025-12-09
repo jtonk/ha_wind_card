@@ -185,7 +185,7 @@ class WindCard extends LitElement {
     const center = { x: 50, y: 50 };
     const spanRange = Math.max(0, maxSpan - minSpan);
     if (spanRange <= 0) return null;
-    const dashLenKn = 0.2; // half of 5-kn span
+    const dashLenKn = 0.5; //
     const gapLenKn = 5 - dashLenKn; // keep total cycle at 5 knots
 
     const ticks = anchors.map(anchor => {

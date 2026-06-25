@@ -7,8 +7,8 @@ Wind Card is a [Home Assistant](https://www.home-assistant.io/) custom card for 
 - Animated direction arrow with radial speed and gust rings
 - Wind rose with N/E/S/W indicators and tick marks
 - Cycles through arrays of `direction`, `speed` and `gusts` exposed in an entity's `data` attribute
-- Hovering over the history bars displays that entry's values on the gauge
-- Touch support to view bar values by sliding across the graph
+- Hovering over the radial history graph displays that entry's values on the gauge
+- Touch support to view values by sliding across the radial history graph
 - Automatically zeros the gauge when sensor data is older than a minute
 
 ## Installation
@@ -46,11 +46,10 @@ tickPath_radius: 38
 tickPath_width: 4
 units_offset: 4
 minutes: 30
-graph_height: 100
-show_graph: true
+show_radialgraph: true
 autoscale: true
 multiplier: 1
 ```
 The optional parameters `size`, `gauge_radius`, `gauge_width`, `cardinal_offset`, `tickPath_radius`, `tickPath_width` and `units_offset` control the dimensions of the compass. If omitted their defaults are 200, 40, 2, 4, 38, 4 and 4 respectively.
-`minutes` controls how much history (in minutes) is displayed. `graph_height` sets the height of the bar chart. If `autoscale` is `true` the graph scales to the maximum gust value; otherwise values are scaled by `multiplier`.
-Set `show_graph` to `false` to hide the bar chart entirely.
+`minutes` controls how much history (in minutes) is displayed. If `autoscale` is `true` the radial history graph scales to the maximum gust value; otherwise values are scaled by `multiplier`.
+Set `show_radialgraph` to `false` to hide the radial history graph entirely. `show_graph: false` is also supported as a compatibility alias.

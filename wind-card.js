@@ -60,6 +60,9 @@ class WindCard extends LitElement {
     if (!config.wind_entity || !config.gust_entity || !config.direction_entity) {
       throw new Error('wind_entity, gust_entity and direction_entity must be set');
     }
+    const wasShowingRadialGraph = this.show_radialgraph;
+    const radialGraphConfig = config.show_radialgraph ?? config.show_graph;
+
     this.config = config;
     this.size = Number(config.size || 200);
     this.cardinal_offset = Number(config.cardinal_offset || 4);
@@ -67,7 +70,17 @@ class WindCard extends LitElement {
     this.tickPath_width = Number(config.tickPath_width || 4);
     this.minutes = Math.max(1, Math.min(60, Number(config.minutes || 60)));
     this.autoscale = config.autoscale !== false;
-    this.show_radialgraph = config.show_radialgraph !== false;
+    this.show_radialgraph = radialGraphConfig !== false;
+
+    if (!this.show_radialgraph) {
+      clearTimeout(this._timeout);
+      this._historyData = [];
+      this._lastUpdated = null;
+      this._noData = false;
+      this._hoverMinute = null;
+    } else if (this.isConnected && !wasShowingRadialGraph) {
+      this._scheduleNextFetch();
+    }
   }
 
   set hass(hass) {
@@ -332,7 +345,7 @@ class WindCard extends LitElement {
   }
 
   async _fetchData() {
-    if (!this.hass || !this.config) return;
+    if (!this.show_radialgraph || !this.hass || !this.config) return;
 
     const minutes = Math.max(1, Math.min(60, Number(this.minutes || 0)));
     const now = new Date();
@@ -520,7 +533,9 @@ class WindCard extends LitElement {
     const now = new Date();
     const currentMinute = now.getMinutes();
     const minuteData = this._buildMinuteDataMap(now);
-    const activeMinute = Number.isInteger(this._hoverMinute) ? this._hoverMinute : currentMinute;
+    const activeMinute = this.show_radialgraph && Number.isInteger(this._hoverMinute)
+      ? this._hoverMinute
+      : currentMinute;
     const activeValues = this._getMinuteValues(activeMinute, minuteData, currentMinute);
     const dirText = this._directionToText(activeValues.direction ?? this.direction);
     const tickPath_radius = this.tickPath_radius;
@@ -564,9 +579,9 @@ class WindCard extends LitElement {
               <text class="gust" x="50" y="66" fill="${gustColor}">${(activeValues.gust ?? this.gust).toFixed(1)} kn</text>
             </g>
           </svg>
-          ${this._noData ? html`<div class="no-data">No data available</div>` : ''}
+          ${this.show_radialgraph && this._noData ? html`<div class="no-data">No data available</div>` : ''}
         </div>
-        ${!this._noData ? html`
+        ${this.show_radialgraph && !this._noData && this._lastUpdated ? html`
           <div class="footer">Updated: ${this._lastUpdated?.toLocaleTimeString()}</div>
         ` : ''}
       </ha-card>

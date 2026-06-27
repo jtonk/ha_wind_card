@@ -24,7 +24,6 @@ class WindCard extends LitElement {
     _timeline: { type: Array },
     _timelineIndex: { type: Number },
     _historyData: { state: true },
-    _lastUpdated: { state: true },
     _noData: { state: true },
     show_radialgraph: { type: Boolean },
     _hoverMinute: { state: true }
@@ -45,7 +44,6 @@ class WindCard extends LitElement {
     this._timelineIndex = 0;
 
     this._historyData = [];
-    this._lastUpdated = null;
     this._noData = false;
     this.show_radialgraph = true;
     this._lastTimelineUpdate = null;
@@ -75,7 +73,6 @@ class WindCard extends LitElement {
     if (!this.show_radialgraph) {
       clearTimeout(this._timeout);
       this._historyData = [];
-      this._lastUpdated = null;
       this._noData = false;
       this._hoverMinute = null;
     } else if (this.isConnected && !wasShowingRadialGraph) {
@@ -440,12 +437,10 @@ class WindCard extends LitElement {
 
       if (noData) {
         this._historyData = historyData;
-        this._lastUpdated = new Date();
         return;
       }
 
       this._historyData = historyData;
-      this._lastUpdated = new Date();
     } catch (err) {
       this._historyData = [];
       this._noData = true;
@@ -599,9 +594,6 @@ class WindCard extends LitElement {
           </svg>
           ${this.show_radialgraph && this._noData ? html`<div class="no-data">No data available</div>` : ''}
         </div>
-        ${this.show_radialgraph && !this._noData && this._lastUpdated ? html`
-          <div class="footer">Updated: ${this._lastUpdated?.toLocaleTimeString()}</div>
-        ` : ''}
       </ha-card>
     `;
   }
@@ -685,13 +677,6 @@ class WindCard extends LitElement {
       stroke-width: 1.4;
       stroke-linecap: but;
       opacity: 1.0;
-    }
-    .footer {
-      text-align: right;
-      font-size: 9px;
-      font-weight: 400;
-      padding: 4px 12px;
-      color: var(--secondary-text-color);
     }
     .no-data {
       padding: 16px;

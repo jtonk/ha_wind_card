@@ -51,5 +51,5 @@ autoscale: true
 multiplier: 1
 ```
 The optional parameters `size`, `gauge_radius`, `gauge_width`, `cardinal_offset`, `tickPath_radius`, `tickPath_width` and `units_offset` control the dimensions of the compass. If omitted their defaults are 200, 40, 2, 4, 38, 4 and 4 respectively.
-`minutes` controls how much history (in minutes) is displayed. If `autoscale` is `true` the radial history graph scales to the maximum gust value; otherwise values are scaled by `multiplier`.
+`minutes` controls how much history (in minutes) is displayed. If `autoscale` is `true`, the radial history graph maps the smallest positive wind speed to the minimum visible bar and the maximum gust value to the full bar length. If `autoscale` is `false`, values are scaled against 60 knots.
 Set `show_radialgraph` to `false` to hide the radial history graph entirely. `show_graph: false` is also supported as a compatibility alias.

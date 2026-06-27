@@ -459,17 +459,31 @@ class WindCard extends LitElement {
     const outerR = this.tickPath_radius;
     const maxSpan = Math.max(4, Math.min(18, outerR - 16));
     const minSpan = 1.5;
-    const windScale = Math.max(...this._historyData.map(d => {
-      const w = Number.isFinite(d.wind) ? d.wind : 0;
-      const g = Number.isFinite(d.gust) ? d.gust : w;
-      return Math.max(w, g);
-    }), 1);
-    const scale = this.autoscale ? windScale : 60;
+    const positiveWindValues = this._historyData
+      .map(d => d.wind)
+      .filter(v => Number.isFinite(v) && v > 0);
+    if (Number.isFinite(this.windSpeed) && this.windSpeed > 0) {
+      positiveWindValues.push(this.windSpeed);
+    }
+    const gustValues = this._historyData
+      .map(d => Number.isFinite(d.gust) ? d.gust : d.wind)
+      .filter(v => Number.isFinite(v) && v > 0);
+    if (Number.isFinite(this.gust) && this.gust > 0) {
+      gustValues.push(this.gust);
+    }
+    const minScaleValue = this.autoscale && positiveWindValues.length
+      ? Math.min(...positiveWindValues)
+      : 0;
+    const maxScaleValue = this.autoscale && gustValues.length
+      ? Math.max(...gustValues)
+      : 60;
+    const scaleRange = maxScaleValue - minScaleValue;
     const center = { x: 50, y: 50 };
 
     const slots = this._buildMinuteSlots(now);
     const speedAnchors = slots.filter(s => s.minute % 5 === 0);
-    const speedTicks = this._renderSpeedScale(outerR, minSpan, maxSpan, scale, speedAnchors);
+    const tickScale = this.autoscale ? scaleRange : maxScaleValue;
+    const speedTicks = this._renderSpeedScale(outerR, minSpan, maxSpan, tickScale, speedAnchors);
 
     return svg`<g class="history-radial">
       ${repeat(slots, (slot) => slot.minute, (slot, idx) => {
@@ -484,8 +498,12 @@ class WindCard extends LitElement {
         const gustVal = isCurrent && (liveGust !== null || liveWind !== null)
           ? (liveGust ?? liveWind ?? baseGust)
           : baseGust;
-        const windFactor = Math.min(1, Math.max(0, windVal / (scale || 1)));
-        const gustFactor = Math.min(1, Math.max(0, gustVal / (scale || 1)));
+        const windFactor = this.autoscale && scaleRange > 0
+          ? Math.min(1, Math.max(0, (windVal - minScaleValue) / scaleRange))
+          : Math.min(1, Math.max(0, windVal / (maxScaleValue || 1)));
+        const gustFactor = this.autoscale && scaleRange > 0
+          ? Math.min(1, Math.max(0, (gustVal - minScaleValue) / scaleRange))
+          : Math.min(1, Math.max(0, gustVal / (maxScaleValue || 1)));
         const windSpan = minSpan + windFactor * (maxSpan - minSpan);
         const gustSpan = minSpan + gustFactor * (maxSpan - minSpan);
         const windDash = windVal > 0 ? windSpan : 0;

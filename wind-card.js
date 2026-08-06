@@ -187,40 +187,6 @@ class WindCard extends LitElement {
     return dirs[i];
   }
 
-  _renderSpeedScale(outerR, minSpan, maxSpan, scale, anchorSlots) {
-    if (!scale || scale < 5) return null;
-    const anchors = Array.isArray(anchorSlots) && anchorSlots.length
-      ? anchorSlots
-      : Array.from({ length: 12 }, (_, i) => ({ angle: i * 30 }));
-    const center = { x: 50, y: 50 };
-    const spanRange = Math.max(0, maxSpan - minSpan);
-    if (spanRange <= 0) return null;
-    const dashLenKn = 0.5; //
-    const gapLenKn = 5 - dashLenKn; // keep total cycle at 5 knots
-
-    const ticks = anchors.map(anchor => {
-      const angle = anchor.angle;
-      const outer = this._polarToCartesian(center.x, center.y, outerR, angle);
-      const dx = center.x - outer.x;
-      const dy = center.y - outer.y;
-      const len = Math.hypot(dx, dy) || 1;
-      const ux = dx / len;
-      const uy = dy / len;
-      const startX = outer.x + ux * minSpan;
-      const startY = outer.y + uy * minSpan;
-      const endX = startX + ux * spanRange;
-      const endY = startY + uy * spanRange;
-      return svg`<line
-        x1="${startX}" y1="${startY}"
-        x2="${endX}" y2="${endY}"
-        pathLength="${scale}"
-        stroke-dasharray="${dashLenKn.toFixed(3)} ${(gapLenKn).toFixed(3)}"
-      ></line>`;
-    });
-
-    return svg`<g class="speed-ticks">${ticks}</g>`;
-  }
-
   _buildTickPath(radius, length, step, skip = []) {
     let d = '';
     for (let a = 0; a < 360; a += step) {
@@ -476,9 +442,6 @@ class WindCard extends LitElement {
     const center = { x: 50, y: 50 };
 
     const slots = this._buildMinuteSlots(now);
-    const speedAnchors = slots.filter(s => s.minute % 5 === 0);
-    const tickScale = this.autoscale ? scaleRange : maxScaleValue;
-    const speedTicks = this._renderSpeedScale(outerR, minSpan, maxSpan, tickScale, speedAnchors);
 
     return svg`<g class="history-radial">
       ${repeat(slots, (slot) => slot.minute, (slot, idx) => {
@@ -538,7 +501,6 @@ class WindCard extends LitElement {
           ></line>
         </g>`;
       })}
-      ${speedTicks}
     </g>`;
   }
 
@@ -668,15 +630,6 @@ class WindCard extends LitElement {
     }
     .history-minute.current .history-line-dash {
 
-    }
-    .speed-ticks {
-      pointer-events: none;
-    }
-    .speed-ticks line {
-      stroke: var(--primary-text-color, #212121);
-      stroke-width: 1.4;
-      stroke-linecap: but;
-      opacity: 1.0;
     }
     .no-data {
       padding: 16px;
